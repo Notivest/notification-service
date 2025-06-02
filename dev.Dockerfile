@@ -21,7 +21,7 @@ RUN curl -fsSL \
     -o newrelic.jar
 
 ENV PORT=8080 \
-    NEW_RELIC_APP_NAME=notification-service-prod \
+    NEW_RELIC_APP_NAME=notification-service-dev \
     NEW_RELIC_LOG_FILE_NAME=STDOUT
 
 EXPOSE 8080
