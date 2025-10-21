@@ -1,4 +1,4 @@
-package com.notivest.notification_service
+package com.notivest.notificationservice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

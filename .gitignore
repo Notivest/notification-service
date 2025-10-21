@@ -4,7 +4,10 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+AGENTS.md
+notification.md
+.env
+/.gradle-home/
 ### STS ###
 .apt_generated
 .classpath
@@ -38,3 +41,5 @@ out/
 
 ### Kotlin ###
 .kotlin
+/docs/
+/.gradle-home/

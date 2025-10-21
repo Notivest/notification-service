@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<p th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
+<p th:text="${#messages.msg('email.alert.intro', subjectTarget)}">We detected a new alert.</p>
+
+<p>
+  <strong th:text="${#messages.msg('email.alert.severity')}">Severity</strong>:
+  <span th:text="${data['severity'] ?: 'INFO'}">INFO</span>
+</p>
+
+<p>
+  <strong th:text="${#messages.msg('email.alert.occurredAt')}">Occurred at</strong>:
+  <span th:text="${data['occurredAt'] ?: ''}">2024-06-01T10:15:00Z</span>
+</p>
+
+<div th:if="${data['details']}">
+  <p th:text="${#messages.msg('email.alert.details')}">Details</p>
+  <ul>
+    <li th:each="entry : ${data['details'].entrySet()}">
+      <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
+    </li>
+  </ul>
+</div>
+
+<p th:text="${#messages.msg('email.alert.dismiss')}">If you wish to change your preferences, visit your notification settings.</p>
+<p th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
+</body>
+</html>
