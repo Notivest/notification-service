@@ -2,11 +2,9 @@ package com.notivest.notificationservice.infrastructure.adapters.out.db.jpa.emai
 
 import com.notivest.notificationservice.domain.email.EmailEvent
 import com.notivest.notificationservice.domain.email.port.EmailEventRepository
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 
-@Component
-@ConditionalOnBean(EmailEventJpaRepository::class)
+@Repository
 class JpaEmailEventRepository(
     private val repository: EmailEventJpaRepository,
     private val mapper: EmailEventEntityMapper,

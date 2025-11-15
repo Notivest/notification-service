@@ -38,8 +38,23 @@ class ThymeleafEmailTemplateRenderer(
         return RenderedEmailTemplate(subject = subject, body = body)
     }
 
-    private fun resolveTemplateName(templateKey: String): String =
-        templateKey.substringBefore('.')
+    private fun resolveTemplateName(templateKey: String): String {
+        val normalized = templateKey.trim()
+        val candidates =
+            listOf(
+                normalized,
+                normalized.substringBefore('.'),
+                normalized.substringBefore('-'),
+            ).filter { it.isNotBlank() }
+                .distinct()
+
+        return candidates.firstOrNull { templateExists(it) } ?: normalized
+    }
+
+    private fun templateExists(templateName: String): Boolean {
+        val resourcePath = "templates/email/$templateName.html"
+        return javaClass.classLoader?.getResource(resourcePath) != null
+    }
 
     private fun toVariables(data: JsonNode): Map<String, Any?> =
         if (data.isMissingNode || data.isNull) {

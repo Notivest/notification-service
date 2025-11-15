@@ -6,6 +6,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.PrePersist
 import jakarta.persistence.PreUpdate
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
@@ -23,6 +25,7 @@ class EmailJobEntity {
     @Column(name = "template_key", nullable = false, length = 64)
     lateinit var templateKey: String
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "template_json", nullable = false, columnDefinition = "jsonb")
     lateinit var templateJson: String
 

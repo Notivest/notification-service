@@ -1,8 +1,6 @@
 package com.notivest.notificationservice.infrastructure.adapters.out.db.jpa.dedup
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,8 +10,6 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import java.time.Instant
 import java.util.UUID
 
@@ -65,28 +61,5 @@ class JpaDedupKeyRepositoryTest {
         @Bean
         fun jpaDedupKeyRepository(repository: DedupKeyJpaRepository): JpaDedupKeyRepository =
             JpaDedupKeyRepository(repository)
-    }
-
-    companion object {
-        private val embeddedPostgres: EmbeddedPostgres = EmbeddedPostgres.builder().start()
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun registerDataSource(registry: DynamicPropertyRegistry) {
-            val jdbcUrl = embeddedPostgres.getJdbcUrl("postgres", "postgres")
-            registry.add("spring.datasource.url") { jdbcUrl }
-            registry.add("spring.datasource.username") { "postgres" }
-            registry.add("spring.datasource.password") { "" }
-            registry.add("spring.datasource.driver-class-name") { "org.postgresql.Driver" }
-            registry.add("spring.jpa.show-sql") { false }
-            registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
-            registry.add("spring.flyway.enabled") { false }
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun stopPostgres() {
-            embeddedPostgres.close()
-        }
     }
 }

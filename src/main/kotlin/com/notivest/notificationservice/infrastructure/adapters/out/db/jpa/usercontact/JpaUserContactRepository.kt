@@ -2,12 +2,10 @@ package com.notivest.notificationservice.infrastructure.adapters.out.db.jpa.user
 
 import com.notivest.notificationservice.domain.contact.UserContact
 import com.notivest.notificationservice.domain.contact.port.UserContactRepository
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.util.UUID
 
-@Component
-@ConditionalOnBean(UserContactJpaRepository::class)
+@Repository
 class JpaUserContactRepository(
     private val repository: UserContactJpaRepository,
     private val mapper: UserContactEntityMapper,

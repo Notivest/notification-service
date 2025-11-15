@@ -9,6 +9,7 @@ import com.notivest.notificationservice.domain.contact.UserContact
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.QuietHoursDto
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.UpsertUserContactRequest
 import com.notivest.notificationservice.infrastructure.mapper.UserContactMapper
+import com.notivest.notificationservice.security.JwtEmailResolver
 import com.notivest.notificationservice.security.JwtUserIdResolver
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -51,6 +52,9 @@ class UserContactControllerTest(
 
     @MockkBean
     private lateinit var jwtUserIdResolver: JwtUserIdResolver
+
+    @MockkBean
+    private lateinit var jwtEmailResolver: JwtEmailResolver
 
     private val userId: UUID = UUID.randomUUID()
     private val jwtAuthenticationToken =
@@ -123,10 +127,8 @@ class UserContactControllerTest(
     fun `POST contact upserts and returns payload`() {
         val request =
             UpsertUserContactRequest(
-                primaryEmail = "user@example.com",
                 emailStatus = EmailStatus.UNVERIFIED,
                 locale = "en-US",
-                channels = mapOf("email" to true, "push" to false),
                 quietHours =
                     QuietHoursDto(
                         start = "22:00",
@@ -134,13 +136,14 @@ class UserContactControllerTest(
                         timezone = "America/New_York",
                     ),
             )
+        val primaryEmail = "jwt-user@example.com"
         val saved =
             UserContact(
                 userId = userId,
-                primaryEmail = request.primaryEmail,
+                primaryEmail = primaryEmail,
                 emailStatus = EmailStatus.UNVERIFIED,
                 locale = Locale.forLanguageTag("en-US"),
-                channels = request.channels,
+                channels = mapOf("email" to true),
                 quietHours =
                     QuietHours(
                         start = LocalTime.of(22, 0),
@@ -153,6 +156,7 @@ class UserContactControllerTest(
             )
 
         every { jwtUserIdResolver.requireUserId(any()) } returns userId
+        every { jwtEmailResolver.requireEmail(any()) } returns primaryEmail
         every { upsertUserContactUseCase.upsert(any()) } returns saved
 
         val context = SecurityContextHolder.createEmptyContext().apply {
@@ -169,6 +173,7 @@ class UserContactControllerTest(
                 .andExpect(status().isOk)
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.channels").doesNotExist())
                 .andExpect(jsonPath("$.quietHours.start").value("22:00"))
                 .andExpect(jsonPath("$.quietHours.timezone").value("America/New_York"))
         } finally {

@@ -9,7 +9,6 @@ data class UserContactResponse(
     val primaryEmail: String,
     val emailStatus: EmailStatus,
     val locale: String?,
-    val channels: Map<String, Boolean>,
     val quietHours: QuietHoursDto?,
     val version: Long,
     val updatedAt: Instant,

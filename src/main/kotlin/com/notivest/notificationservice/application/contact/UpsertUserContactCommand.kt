@@ -10,6 +10,6 @@ data class UpsertUserContactCommand(
     val primaryEmail: String,
     val emailStatus: EmailStatus,
     val locale: Locale?,
-    val channels: Map<String, Boolean>,
+    val channels: Map<String, Boolean>?,
     val quietHours: QuietHours?,
 )

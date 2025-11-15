@@ -15,6 +15,8 @@ import com.notivest.notificationservice.domain.emailjob.EmailJob
 import com.notivest.notificationservice.domain.emailjob.EmailJobStatus
 import com.notivest.notificationservice.domain.emailjob.port.EmailJobRepository
 import com.notivest.notificationservice.domain.notification.QuietHoursScheduler
+import com.notivest.notificationservice.domain.portfolio.PortfolioHolding
+import com.notivest.notificationservice.domain.portfolio.PortfolioHoldingsQuery
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,6 +39,7 @@ class EmailBounceBlocksNotificationTest {
 
     private lateinit var notificationService: NotificationApplicationService
     private lateinit var webhookService: EmailWebhookApplicationService
+    private lateinit var alertTemplateDataEnricher: AlertTemplateDataEnricher
 
     private val userId: UUID = UUID.randomUUID()
 
@@ -46,6 +49,7 @@ class EmailBounceBlocksNotificationTest {
         userContactRepository = InMemoryUserContactRepository()
         emailJobRepository = InMemoryEmailJobRepository()
         emailEventRepository = InMemoryEmailEventRepository()
+        alertTemplateDataEnricher = AlertTemplateDataEnricher(NoOpPortfolioHoldingsQuery(), objectMapper)
 
         val contact =
             UserContact(
@@ -69,6 +73,7 @@ class EmailBounceBlocksNotificationTest {
                 emailJobRepository,
                 clock,
                 QuietHoursScheduler(),
+                alertTemplateDataEnricher,
             )
 
         webhookService = EmailWebhookApplicationService(emailEventRepository, userContactRepository, clock)
@@ -141,6 +146,10 @@ class EmailBounceBlocksNotificationTest {
             jobs.add(job.copy(status = EmailJobStatus.PENDING))
             return job
         }
+
+        override fun findDue(now: Instant, limit: Int): List<EmailJob> =
+            jobs.filter { it.status == EmailJobStatus.PENDING && !it.scheduledAt.isAfter(now) }
+                .take(if (limit > 0) limit else 0)
     }
 
     private class InMemoryEmailEventRepository : EmailEventRepository {
@@ -150,5 +159,9 @@ class EmailBounceBlocksNotificationTest {
             events.add(event)
             return event
         }
+    }
+
+    private class NoOpPortfolioHoldingsQuery : PortfolioHoldingsQuery {
+        override fun search(userId: UUID, symbols: List<String>): List<PortfolioHolding> = emptyList()
     }
 }

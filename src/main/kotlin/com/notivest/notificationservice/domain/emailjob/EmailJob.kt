@@ -16,6 +16,23 @@ data class EmailJob(
     val createdAt: Instant,
     val updatedAt: Instant,
 ) {
+
+    fun markSent(processedAt: Instant): EmailJob =
+        copy(
+            status = EmailJobStatus.SENT,
+            attempts = attempts + 1,
+            error = null,
+            updatedAt = processedAt,
+        )
+
+    fun markFailed(processedAt: Instant, message: String): EmailJob =
+        copy(
+            status = EmailJobStatus.FAILED,
+            attempts = attempts + 1,
+            error = message,
+            updatedAt = processedAt,
+        )
+
     companion object {
         fun pending(
             userId: UUID,

@@ -20,6 +20,7 @@ class UserContactApplicationService(
         val existing = repository.findByUserId(command.userId)
         val now = Instant.now(clock)
         val nextVersion = existing?.version?.plus(1) ?: 0L
+        val channels = command.channels ?: existing?.channels ?: DEFAULT_CHANNELS
 
         val contact =
             UserContact(
@@ -27,7 +28,7 @@ class UserContactApplicationService(
                 primaryEmail = command.primaryEmail,
                 emailStatus = command.emailStatus,
                 locale = command.locale,
-                channels = command.channels,
+                channels = channels,
                 quietHours = command.quietHours,
                 version = nextVersion,
                 createdAt = existing?.createdAt ?: now,
@@ -35,5 +36,9 @@ class UserContactApplicationService(
             )
 
         return repository.save(contact)
+    }
+
+    private companion object {
+        val DEFAULT_CHANNELS = mapOf("email" to true)
     }
 }

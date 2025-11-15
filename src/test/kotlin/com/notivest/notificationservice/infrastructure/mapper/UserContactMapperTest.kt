@@ -22,10 +22,8 @@ class UserContactMapperTest {
     fun `toCommand maps locale and quiet hours`() {
         val dto =
             UpsertUserContactRequest(
-                primaryEmail = "user@example.com",
                 emailStatus = EmailStatus.UNVERIFIED,
                 locale = " ",
-                channels = mapOf("email" to true),
                 quietHours =
                     QuietHoursDto(
                         start = "21:00",
@@ -35,10 +33,13 @@ class UserContactMapperTest {
             )
 
         val userId = UUID.randomUUID()
-        val command: UpsertUserContactCommand = mapper.toCommand(dto, userId)
+        val primaryEmail = "user@example.com"
+        val command: UpsertUserContactCommand = mapper.toCommand(dto, userId, primaryEmail)
 
         assertThat(command.userId).isEqualTo(userId)
+        assertThat(command.primaryEmail).isEqualTo(primaryEmail)
         assertThat(command.locale).isNull()
+        assertThat(command.channels).isNull()
         assertThat(command.quietHours)
             .usingRecursiveComparison()
             .isEqualTo(

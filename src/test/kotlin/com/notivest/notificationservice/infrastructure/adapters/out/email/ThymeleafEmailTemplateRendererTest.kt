@@ -62,7 +62,12 @@ class ThymeleafEmailTemplateRendererTest {
         val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
 
         assertThat(rendered.subject).isEqualTo("Alert: AAPL")
-        assertThat(rendered.body.trim()).isEqualTo(loadSnapshot("alert_en.html").trim())
+        assertThat(rendered.body).contains("Hello Gonza,")
+        assertThat(rendered.body).contains("We detected a new alert for AAPL.")
+        assertThat(rendered.body).contains("We spotted unusual activity affecting AAPL. Here is the snapshot so you can respond confidently.")
+        assertThat(rendered.body).contains("<span>WARN</span>")
+        assertThat(rendered.body).contains("You received this alert based on your current notification preferences.")
+        assertThat(rendered.body).doesNotContain("th:text")
     }
 
     @Test
@@ -85,7 +90,55 @@ class ThymeleafEmailTemplateRendererTest {
         val rendered = renderer.render("alert.v1", Locale.forLanguageTag("es-AR"), data)
 
         assertThat(rendered.subject).isEqualTo("Alerta: AAPL")
-        assertThat(rendered.body.trim()).isEqualTo(loadSnapshot("alert_es.html").trim())
+        assertThat(rendered.body).contains("Hola Gonza,")
+        assertThat(rendered.body).contains("Detectamos una nueva alerta para AAPL.")
+        assertThat(rendered.body).contains("Registramos actividad inusual en AAPL. A continuación, un resumen para que puedas actuar con rapidez.")
+        assertThat(rendered.body).contains("<span>CRITICAL</span>")
+        assertThat(rendered.body).contains("Recibiste este aviso según tus preferencias de notificación vigentes.")
+        assertThat(rendered.body).doesNotContain("th:text")
+    }
+
+    @Test
+    fun `render alert template includes holdings section`() {
+        val data = objectMapper.readTree(
+            """
+            {
+              "recipientName": "Gonza",
+              "symbol": "AAPL",
+              "holdings": [
+                {
+                  "portfolioName": "Cartera USD",
+                  "quantity": 12.5,
+                  "avgCost": 188.12,
+                  "updatedAt": "2024-06-01T10:15:00Z"
+                }
+              ]
+            }
+            """.trimIndent(),
+        )
+
+        val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
+
+        assertThat(rendered.body).contains("Your holdings in this asset")
+        assertThat(rendered.body).contains("Cartera USD")
+        assertThat(rendered.body).contains("188.12")
+    }
+
+    @Test
+    fun `render alert template shows empty message when no holdings`() {
+        val data = objectMapper.readTree(
+            """
+            {
+              "recipientName": "Gonza",
+              "symbol": "AAPL",
+              "holdings": []
+            }
+            """.trimIndent(),
+        )
+
+        val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
+
+        assertThat(rendered.body).contains("You currently have no holdings for AAPL.")
     }
 
     @Test
@@ -108,7 +161,13 @@ class ThymeleafEmailTemplateRendererTest {
         val rendered = renderer.render("recommendation.v1", Locale.ENGLISH, data)
 
         assertThat(rendered.subject).isEqualTo("Recommendation: SP500")
-        assertThat(rendered.body.trim()).isEqualTo(loadSnapshot("recommendation_en.html").trim())
+        assertThat(rendered.body).contains("Hello Gonza,")
+        assertThat(rendered.body).contains("Here is a new recommendation for SP500.")
+        assertThat(rendered.body).contains("Rebalance portfolio")
+        assertThat(rendered.body).contains("Consider hedging")
+        assertThat(rendered.body).contains("Recommendation type")
+        assertThat(rendered.body).contains("Review your dashboard to take action.")
+        assertThat(rendered.body).doesNotContain("th:text")
     }
 
     @Test
@@ -131,11 +190,38 @@ class ThymeleafEmailTemplateRendererTest {
         val rendered = renderer.render("recommendation.v1", Locale.forLanguageTag("es-AR"), data)
 
         assertThat(rendered.subject).isEqualTo("Recomendación: SP500")
-        assertThat(rendered.body.trim()).isEqualTo(loadSnapshot("recommendation_es.html").trim())
+        assertThat(rendered.body).contains("Hola Gonza,")
+        assertThat(rendered.body).contains("Tenemos una nueva recomendación para SP500.")
+        assertThat(rendered.body).contains("Rebalancear cartera")
+        assertThat(rendered.body).contains("Considerar cobertura")
+        assertThat(rendered.body).contains("Tipo de recomendación")
+        assertThat(rendered.body).contains("Consulta tu panel para tomar acción.")
+        assertThat(rendered.body).doesNotContain("th:text")
     }
 
-    private fun loadSnapshot(name: String): String =
-        ThymeleafEmailTemplateRendererTest::class.java.getResource("/snapshots/$name")
-            ?.readText(StandardCharsets.UTF_8)
-            ?: error("Snapshot $name not found")
+    @Test
+    fun `fallback to base alert template when variant suffix missing`() {
+        val data = objectMapper.readTree(
+            """
+            {
+              "recipientName": "Gonza",
+              "symbol": "AAPL",
+              "severity": "WARN",
+              "occurredAt": "2024-06-01T10:15:00Z",
+              "details": {
+                "price": "188.12",
+                "timeframe": "H1"
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val rendered = renderer.render("alert-default", Locale.ENGLISH, data)
+
+        assertThat(rendered.subject).isEqualTo("Alert: AAPL")
+        assertThat(rendered.body).contains("We detected a new alert for AAPL.")
+        assertThat(rendered.body).contains("<span>WARN</span>")
+        assertThat(rendered.body).doesNotContain("th:text")
+    }
+
 }

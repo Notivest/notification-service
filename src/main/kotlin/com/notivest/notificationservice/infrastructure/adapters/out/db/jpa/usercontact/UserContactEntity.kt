@@ -4,6 +4,8 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
@@ -23,9 +25,11 @@ class UserContactEntity {
     @Column(name = "locale", length = 10)
     var locale: String? = null
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "channels_json", nullable = false, columnDefinition = "jsonb")
     lateinit var channelsJson: String
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "quiet_hours", columnDefinition = "jsonb")
     var quietHoursJson: String? = null
 

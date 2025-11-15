@@ -34,6 +34,7 @@ class NotificationApplicationServiceTest {
     private val emailJobRepository: EmailJobRepository = mockk()
     private val quietHoursScheduler = QuietHoursScheduler()
     private val deduplicationBucketCalculator = DeduplicationBucketCalculator(Duration.ofMinutes(5))
+    private val alertTemplateDataEnricher: AlertTemplateDataEnricher = mockk()
     private val objectMapper = ObjectMapper().findAndRegisterModules()
 
     private val userId = UUID.randomUUID()
@@ -43,7 +44,8 @@ class NotificationApplicationServiceTest {
 
     @BeforeEach
     fun setUp() {
-        clearMocks(dedupKeyRepository, userContactRepository, emailJobRepository)
+        clearMocks(dedupKeyRepository, userContactRepository, emailJobRepository, alertTemplateDataEnricher)
+        every { alertTemplateDataEnricher.enrich(any(), any()) } answers { secondArg() }
     }
 
     @Test
@@ -173,6 +175,7 @@ class NotificationApplicationServiceTest {
             emailJobRepository = emailJobRepository,
             clock = Clock.fixed(clockInstant, ZoneOffset.UTC),
             quietHoursScheduler = quietHoursScheduler,
+            alertTemplateDataEnricher = alertTemplateDataEnricher,
         )
 
     private fun alertCommand(severity: String): NotifyAlertCommand =

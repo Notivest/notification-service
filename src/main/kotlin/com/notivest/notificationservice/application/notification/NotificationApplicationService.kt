@@ -22,6 +22,7 @@ class NotificationApplicationService(
     private val emailJobRepository: EmailJobRepository,
     private val clock: Clock,
     private val quietHoursScheduler: QuietHoursScheduler,
+    private val alertTemplateDataEnricher: AlertTemplateDataEnricher,
 ) : NotifyAlertUseCase, NotifyRecommendationUseCase {
 
     override fun notify(command: NotifyAlertCommand): NotificationOutcome =
@@ -30,7 +31,7 @@ class NotificationApplicationService(
             fingerprint = command.fingerprint,
             occurredAt = command.occurredAt,
             templateKey = command.templateKey,
-            templateData = command.templateData,
+            templateData = alertTemplateDataEnricher.enrich(command.userId, command.templateData),
             bypassQuietHours = command.severity.equals("CRITICAL", ignoreCase = true),
         )
 

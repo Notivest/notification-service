@@ -15,13 +15,13 @@ import java.util.UUID
 
 @Component
 class UserContactMapper {
-    fun toCommand(request: UpsertUserContactRequest, userId: UUID): UpsertUserContactCommand =
+    fun toCommand(request: UpsertUserContactRequest, userId: UUID, primaryEmail: String): UpsertUserContactCommand =
         UpsertUserContactCommand(
             userId = userId,
-            primaryEmail = request.primaryEmail,
+            primaryEmail = primaryEmail,
             emailStatus = request.emailStatus,
             locale = request.locale?.takeIf { it.isNotBlank() }?.let(Locale::forLanguageTag),
-            channels = request.channels,
+            channels = null,
             quietHours = request.quietHours?.let(::toQuietHours),
         )
 
@@ -31,7 +31,6 @@ class UserContactMapper {
             primaryEmail = contact.primaryEmail,
             emailStatus = contact.emailStatus,
             locale = contact.locale?.toLanguageTag(),
-            channels = contact.channels,
             quietHours = contact.quietHours?.let(::toQuietHoursDto),
             version = contact.version,
             updatedAt = contact.updatedAt,

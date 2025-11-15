@@ -33,7 +33,7 @@ class UserContactApplicationServiceTest {
                 primaryEmail = "user@example.com",
                 emailStatus = EmailStatus.VERIFIED,
                 locale = Locale("en", "US"),
-                channels = mapOf("email" to true, "sms" to false),
+                channels = null,
                 quietHours =
                     QuietHours(
                         start = LocalTime.of(22, 0),
@@ -51,6 +51,7 @@ class UserContactApplicationServiceTest {
         assertThat(result.createdAt).isEqualTo(fixedInstant)
         assertThat(result.updatedAt).isEqualTo(fixedInstant)
         assertThat(result.primaryEmail).isEqualTo(command.primaryEmail)
+        assertThat(result.channels).containsEntry("email", true)
         verify {
             repository.save(
                 match {
@@ -58,7 +59,7 @@ class UserContactApplicationServiceTest {
                         it.version == 0L &&
                         it.createdAt == fixedInstant &&
                         it.updatedAt == fixedInstant &&
-                        it.channels == command.channels &&
+                        it.channels["email"] == true &&
                         it.quietHours == command.quietHours
                 },
             )
@@ -87,7 +88,7 @@ class UserContactApplicationServiceTest {
                 primaryEmail = "new@example.com",
                 emailStatus = EmailStatus.VERIFIED,
                 locale = Locale.UK,
-                channels = mapOf("email" to true, "push" to true),
+                channels = null,
                 quietHours = null,
             )
 
@@ -105,7 +106,8 @@ class UserContactApplicationServiceTest {
                     it.version == 3L &&
                         it.createdAt == existingCreatedAt &&
                         it.updatedAt == fixedInstant &&
-                        it.primaryEmail == command.primaryEmail
+                        it.primaryEmail == command.primaryEmail &&
+                        it.channels == existingContact.channels
                 },
             )
         }

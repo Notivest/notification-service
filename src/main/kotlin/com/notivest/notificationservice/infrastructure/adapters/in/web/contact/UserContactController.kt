@@ -2,9 +2,11 @@ package com.notivest.notificationservice.infrastructure.adapters.`in`.web.contac
 
 import com.notivest.notificationservice.application.contact.GetUserContactQuery
 import com.notivest.notificationservice.application.contact.UpsertUserContactUseCase
+import com.notivest.notificationservice.exceptions.InvalidUserEmailException
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.UpsertUserContactRequest
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.UserContactResponse
 import com.notivest.notificationservice.infrastructure.mapper.UserContactMapper
+import com.notivest.notificationservice.security.JwtEmailResolver
 import com.notivest.notificationservice.security.JwtUserIdResolver
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -27,6 +29,7 @@ class UserContactController(
     private val upsertUserContactUseCase: UpsertUserContactUseCase,
     private val mapper: UserContactMapper,
     private val jwtUserIdResolver: JwtUserIdResolver,
+    private val jwtEmailResolver: JwtEmailResolver,
 ) {
     @GetMapping
     fun getContact(
@@ -47,9 +50,17 @@ class UserContactController(
     fun upsertContact(
         @AuthenticationPrincipal jwt: Jwt,
         @Valid @RequestBody request: UpsertUserContactRequest,
-    ): ResponseEntity<UserContactResponse> {
+    ): ResponseEntity<Any> {
         val userId = resolveUserId(jwt)
-        val command = mapper.toCommand(request, userId)
+        val primaryEmail =
+            try {
+                jwtEmailResolver.requireEmail(jwt)
+            } catch (ex: InvalidUserEmailException) {
+                return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(problemDetail(HttpStatus.BAD_REQUEST, "email-missing", ex.message ?: "JWT missing email claim"))
+            }
+        val command = mapper.toCommand(request, userId, primaryEmail)
         val saved = upsertUserContactUseCase.upsert(command)
         return ResponseEntity.ok(mapper.toResponse(saved))
     }

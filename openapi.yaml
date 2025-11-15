@@ -1,0 +1,468 @@
+openapi: 3.1.0
+info:
+  title: Notification Service API
+  version: 1.0.0
+  description: >
+    Endpoints HTTP para gestionar preferencias de contacto, orquestar notificaciones
+    por correo electrónico y procesar webhooks del proveedor SMTP. Contrato generado
+    a partir del código fuente actual.
+  contact:
+    name: Notification Team
+    email: notifications@example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: http://localhost:8084
+    description: Entorno local (docker-compose)
+tags:
+  - name: Contact
+    description: Preferencias de contacto del usuario final
+  - name: Notifications
+    description: Encolado de emails transaccionales
+  - name: Webhooks
+    description: Eventos entrantes del proveedor SMTP
+paths:
+  /api/v1/contact:
+    get:
+      operationId: getUserContact
+      summary: Obtener contacto del usuario autenticado
+      description: >
+        Retorna la preferencia de contacto del usuario derivado del JWT. Si no existe
+        registro devuelve 404 con Problem+JSON.
+      tags: [Contact]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Contacto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserContactResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundProblem'
+    post:
+      operationId: upsertUserContact
+      summary: Crear o actualizar contacto del usuario autenticado
+      description: >
+        Inserta o actualiza (upsert) la preferencia de contacto. El `userId` y el `primaryEmail`
+        se resuelven a partir del JWT; `createdAt`, `updatedAt` y `version` son gestionados por el servicio.
+      tags: [Contact]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertUserContactRequest'
+      responses:
+        '200':
+          description: Contacto persistido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserContactResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/v1/notify/alert:
+    post:
+      operationId: notifyAlert
+      summary: Encolar alerta por email
+      description: >
+        Deduplica por `(userId, fingerprint, bucket)` dentro de la ventana `dedup.window-minutes`.
+        Las alertas con `severity=CRITICAL` ignoran las horas silenciosas.
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotifyAlertRequest'
+      responses:
+        '200':
+          description: Resultado de encolado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/v1/notify/recommendation:
+    post:
+      operationId: notifyRecommendation
+      summary: Encolar recomendación por email
+      description: >
+        Mismo flujo que las alertas. Respeta deduplicación y horas silenciosas (sin bypass).
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotifyRecommendationRequest'
+      responses:
+        '200':
+          description: Resultado de encolado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/v1/webhooks/email:
+    post:
+      operationId: postEmailWebhook
+      summary: Registrar evento externo de email
+      description: >
+        Recibe eventos (delivered, bounce, complaint, etc.). Persiste y actualiza el `EmailStatus`
+        del contacto cuando aplica. La llamada debe incluir el header `X-Webhook-Token` configurado
+        o provenir de una IP permitida.
+      tags: [Webhooks]
+      security:
+        - webhookToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailWebhookRequest'
+      responses:
+        '202':
+          description: Evento aceptado para procesamiento
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          description: Token/IP inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpringError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Token JWT emitido por Auth0. Debe incluir `iss`, `aud` y el claim configurado en `JWT_USER_ID_CLAIM`.
+    webhookToken:
+      type: apiKey
+      in: header
+      name: X-Webhook-Token
+      description: >
+        Token compartido para validar la procedencia del webhook. Alternativamente se valida la IP remota configurada.
+  schemas:
+    UserContactResponse:
+      type: object
+      required:
+        - userId
+        - primaryEmail
+        - emailStatus
+        - version
+        - updatedAt
+        - createdAt
+      properties:
+        userId:
+          type: string
+          format: uuid
+        primaryEmail:
+          type: string
+          format: email
+        emailStatus:
+          $ref: '#/components/schemas/EmailStatus'
+        locale:
+          type: string
+          nullable: true
+          maxLength: 10
+        quietHours:
+          allOf:
+            - $ref: '#/components/schemas/QuietHours'
+          nullable: true
+        version:
+          type: integer
+          format: int64
+          minimum: 0
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    UpsertUserContactRequest:
+      type: object
+      description: 'No incluye el email del usuario; el servicio lo deriva del JWT autenticado.'
+      required:
+        - emailStatus
+      properties:
+        emailStatus:
+          $ref: '#/components/schemas/EmailStatus'
+        locale:
+          type: string
+          nullable: true
+          maxLength: 10
+        quietHours:
+          allOf:
+            - $ref: '#/components/schemas/QuietHours'
+          nullable: true
+    QuietHours:
+      type: object
+      required: [start, end]
+      properties:
+        start:
+          type: string
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+        end:
+          type: string
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+        timezone:
+          type: string
+          nullable: true
+          maxLength: 40
+      additionalProperties: false
+    EmailStatus:
+      type: string
+      enum: [VERIFIED, UNVERIFIED, BOUNCED, UNSUB]
+    NotifyAlertRequest:
+      type: object
+      required:
+        - userId
+        - fingerprint
+        - occurredAt
+        - severity
+        - templateKey
+        - templateData
+      properties:
+        userId:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          minLength: 1
+          maxLength: 128
+        occurredAt:
+          type: string
+          format: date-time
+        severity:
+          type: string
+          minLength: 1
+          maxLength: 32
+        templateKey:
+          type: string
+          minLength: 1
+          maxLength: 64
+        templateData:
+          description: Carga útil flexible utilizada por el motor de plantillas.
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+    NotifyRecommendationRequest:
+      type: object
+      required:
+        - userId
+        - fingerprint
+        - occurredAt
+        - kind
+        - templateKey
+        - templateData
+      properties:
+        userId:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          minLength: 1
+          maxLength: 128
+        occurredAt:
+          type: string
+          format: date-time
+        kind:
+          type: string
+          minLength: 1
+          maxLength: 32
+        templateKey:
+          type: string
+          minLength: 1
+          maxLength: 64
+        templateData:
+          description: Carga útil flexible utilizada por el motor de plantillas.
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+    NotificationResponse:
+      type: object
+      required:
+        - accepted
+      properties:
+        accepted:
+          type: boolean
+        jobId:
+          type: string
+          format: uuid
+          nullable: true
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        reason:
+          type: string
+          nullable: true
+          enum:
+            - deduplicated
+            - contact_not_found
+            - email_channel_disabled
+            - email_status_blocked
+            - null
+      additionalProperties: false
+    EmailWebhookRequest:
+      type: object
+      required:
+        - email
+        - kind
+        - occurredAt
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          nullable: true
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        email:
+          type: string
+          format: email
+        kind:
+          type: string
+          enum: [DELIVERED, OPEN, CLICK, BOUNCE, COMPLAINT, UNSUBSCRIBE, OTHER]
+        providerReference:
+          type: string
+          nullable: true
+        occurredAt:
+          type: string
+          format: date-time
+        payload:
+          description: Datos adicionales específicos del proveedor SMTP.
+          type: object
+          additionalProperties: true
+          nullable: true
+      additionalProperties: false
+    Problem:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          nullable: true
+        traceId:
+          type: string
+          nullable: true
+      additionalProperties: true
+    AuthenticationError:
+      type: object
+      required:
+        - error
+        - message
+        - details
+        - status
+        - timestamp
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+        status:
+          type: integer
+          format: int32
+        timestamp:
+          type: string
+          format: date-time
+      additionalProperties: false
+    SpringError:
+      type: object
+      required:
+        - timestamp
+        - status
+        - error
+        - path
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string
+          nullable: true
+        path:
+          type: string
+      additionalProperties: true
+  responses:
+    NotFoundProblem:
+      description: Recurso no encontrado
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            contactMissing:
+              summary: Contacto inexistente
+              value:
+                type: urn:problem:user-contact:user-contact-not-found
+                title: Not Found
+                status: 404
+                detail: User contact not found
+                instance: /api/v1/contact
+    ValidationProblem:
+      description: Error de validación de entrada
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnauthorizedError:
+      description: Error de autenticación JWT
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticationError'
+          examples:
+            invalidToken:
+              summary: Token inválido
+              value:
+                error: invalid_token
+                message: The provided JWT is invalid
+                details: Make sure the token is well-formed and not expired
+                timestamp: 2024-07-01T10:15:00Z
+                status: 401

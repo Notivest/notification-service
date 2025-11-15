@@ -1,29 +1,118 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body>
-<p th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
-<p th:text="${#messages.msg('email.alert.intro', subjectTarget)}">We detected a new alert.</p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+<div style="max-width:600px;margin:0 auto;padding:24px;background-color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2933;line-height:1.55;">
+  <p style="margin:0 0 16px 0;" th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
+  <p style="margin:0 0 24px 0;" th:text="${#messages.msg('email.alert.intro', subjectTarget)}">
+    We detected a new alert.
+  </p>
+  <p style="margin:0 0 24px 0;" th:text="${#messages.msg('email.alert.overview', subjectTarget)}">
+    We noticed unusual activity. Here is what triggered this alert.
+  </p>
 
-<p>
-  <strong th:text="${#messages.msg('email.alert.severity')}">Severity</strong>:
-  <span th:text="${data['severity'] ?: 'INFO'}">INFO</span>
-</p>
+  <div style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;background-color:#f9fafb;">
+    <p style="margin:0 0 12px 0;font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;color:#6b7280;"
+       th:text="${#messages.msg('email.alert.summaryHeading')}">
+      Key information
+    </p>
+    <table role="presentation" style="width:100%;border-collapse:collapse;">
+      <tbody>
+      <tr>
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.severity')}">Severity</td>
+        <td style="padding:6px 0;font-size:16px;font-weight:600;color:#111827;">
+          <span th:text="${#strings.toUpperCase(data['severity'] ?: 'INFO')}">INFO</span>
+        </td>
+      </tr>
+      <tr th:if="${data['occurredAt']}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.occurredAt')}">
+          Occurred at
+        </td>
+        <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['occurredAt']}">2024-06-01T10:15:00Z</td>
+      </tr>
+      <tr th:if="${data['symbol']}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.symbol')}">Asset</td>
+        <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['symbol']}">AAPL</td>
+      </tr>
+      <tr th:if="${data['metric']}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.metric')}">Signal</td>
+        <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['metric']}">Relative Strength Index</td>
+      </tr>
+      <tr th:if="${data['threshold']}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.threshold')}">Threshold</td>
+        <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['threshold']}">70</td>
+      </tr>
+      <tr th:if="${data['currentValue']}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.currentValue')}">Current value</td>
+        <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['currentValue']}">74.3</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 
-<p>
-  <strong th:text="${#messages.msg('email.alert.occurredAt')}">Occurred at</strong>:
-  <span th:text="${data['occurredAt'] ?: ''}">2024-06-01T10:15:00Z</span>
-</p>
+  <div th:if="${data['holdings']}" style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;background-color:#ffffff;">
+    <p style="margin:0 0 12px 0;font-weight:600;font-size:16px;color:#111827;" th:text="${#messages.msg('email.alert.holdingsHeading')}">
+      Your holdings
+    </p>
+    <p th:if="${#lists.isEmpty(data['holdings'])}" style="margin:0;font-size:14px;color:#6b7280;"
+       th:text="${#messages.msg('email.alert.holdingsEmpty', data['symbol'] ?: 'asset')}">
+      You currently have no holdings for this asset.
+    </p>
+    <table th:if="${!#lists.isEmpty(data['holdings'])}" role="presentation" style="width:100%;border-collapse:collapse;">
+      <thead>
+      <tr>
+        <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
+            th:text="${#messages.msg('email.alert.holdingsTable.portfolio')}">Portfolio</th>
+        <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
+            th:text="${#messages.msg('email.alert.holdingsTable.quantity')}">Quantity</th>
+        <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
+            th:text="${#messages.msg('email.alert.holdingsTable.avgCost')}">Average cost</th>
+        <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
+            th:text="${#messages.msg('email.alert.holdingsTable.updatedAt')}">Updated at</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="holding : ${data['holdings']}">
+        <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['portfolioName']}">Growth Portfolio</td>
+        <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['quantity']}">10.5</td>
+        <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['avgCost']}">185.32</td>
+        <td style="padding:6px 0;font-size:14px;color:#6b7280;" th:text="${holding['updatedAt']}">2024-06-01T11:45:30Z</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 
-<div th:if="${data['details']}">
-  <p th:text="${#messages.msg('email.alert.details')}">Details</p>
-  <ul>
-    <li th:each="entry : ${data['details'].entrySet()}">
-      <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
-    </li>
-  </ul>
+  <div th:if="${data['details']}" style="margin-bottom:24px;">
+    <p style="margin:0 0 12px 0;font-weight:600;font-size:16px;color:#111827;" th:text="${#messages.msg('email.alert.detailsHeading')}">
+      Additional context
+    </p>
+    <ul style="margin:0;padding-left:20px;color:#374151;font-size:15px;">
+      <li th:each="entry : ${data['details'].entrySet()}">
+        <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
+      </li>
+    </ul>
+  </div>
+
+  <div th:if="${data['highlights']}" style="margin-bottom:24px;">
+    <p style="margin:0 0 12px 0;font-weight:600;font-size:16px;color:#111827;" th:text="${#messages.msg('email.alert.highlightsHeading')}">
+      What stands out
+    </p>
+    <ul style="margin:0;padding-left:20px;color:#374151;font-size:15px;">
+      <li th:each="highlight : ${data['highlights']}" th:text="${highlight}">Highlight</li>
+    </ul>
+  </div>
+
+  <div th:if="${data['ctaUrl']}" style="text-align:center;margin-bottom:24px;">
+    <a th:href="${data['ctaUrl']}"
+       style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;border-radius:8px;"
+       th:text="${#messages.msg('email.alert.ctaLabel')}">
+      Review alert
+    </a>
+  </div>
+
+  <p style="margin:0 0 20px 0;color:#6b7280;font-size:14px;" th:text="${#messages.msg('email.alert.dismiss')}">
+    You received this alert based on your current notification preferences.
+  </p>
+  <p style="margin:16px 0 0 0;" th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
 </div>
-
-<p th:text="${#messages.msg('email.alert.dismiss')}">If you wish to change your preferences, visit your notification settings.</p>
-<p th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
 </body>
 </html>
