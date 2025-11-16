@@ -7,6 +7,7 @@ build/
 AGENTS.md
 notification.md
 .env
+.env-portfolio
 postman_collection.json
 /.gradle-home/
 ### STS ###

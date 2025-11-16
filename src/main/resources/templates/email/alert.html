@@ -33,6 +33,10 @@
         <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.symbol')}">Asset</td>
         <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['symbol']}">AAPL</td>
       </tr>
+      <tr th:if="${data['ruleKind']}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;">Rule Type</td>
+        <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${#strings.replace(data['ruleKind'], '_', ' ')}">PRICE THRESHOLD</td>
+      </tr>
       <tr th:if="${data['metric']}">
         <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.metric')}">Signal</td>
         <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['metric']}">Relative Strength Index</td>
@@ -44,6 +48,73 @@
       <tr th:if="${data['currentValue']}">
         <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.currentValue')}">Current value</td>
         <td style="padding:6px 0;font-size:16px;color:#111827;" th:text="${data['currentValue']}">74.3</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div th:if="${data['ruleId'] != null or data['eventId'] != null}">
+    <div style="background-color:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#6b7280;">
+      <table role="presentation" style="width:100%;border-collapse:collapse;">
+        <tbody>
+        <tr th:if="${data['eventId']}">
+          <td style="padding:4px 8px 4px 0;font-weight:600;width:35%;">Event ID:</td>
+          <td style="padding:4px 0;font-family:monospace;word-break:break-all;" th:text="${data['eventId']}">550e8400-e29b-41d4-a716-446655440000</td>
+        </tr>
+        <tr th:if="${data['ruleId']}">
+          <td style="padding:4px 8px 4px 0;font-weight:600;width:35%;">Rule ID:</td>
+          <td style="padding:4px 0;font-family:monospace;word-break:break-all;" th:text="${data['ruleId']}">550e8400-e29b-41d4-a716-446655440001</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div th:if="${data['ruleParams']}" style="background-color:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:16px;margin-bottom:20px;">
+    <p style="margin:0 0 12px 0;font-weight:600;font-size:14px;color:#92400e;">Rule Parameters</p>
+
+    <div th:if="${data['ruleKind'] == 'PRICE_THRESHOLD'}" style="font-size:13px;color:#78350f;">
+      <p style="margin:0;"><strong>Condition:</strong> Price <span th:text="${#strings.toLowerCase(data['ruleParams']['operator'] ?: 'GTE')}">gte</span> <span th:text="${data['ruleParams']['value'] ?: 'N/A'}">60000</span></p>
+    </div>
+
+    <div th:if="${data['ruleKind'] == 'PCT_CHANGE'}" style="font-size:13px;color:#78350f;">
+      <p style="margin:0;"><strong>Condition:</strong> % Change <span th:text="${#strings.toLowerCase(data['ruleParams']['operator'] ?: 'GTE')}">gte</span> <span th:text="${data['ruleParams']['pct'] ?: 'N/A'}">5</span>%</p>
+      <p style="margin:2px 0 0 0;"><strong>Lookback:</strong> <span th:text="${data['ruleParams']['lookbackBars'] ?: 'N/A'}">20</span> bars | <strong>Basis:</strong> <span th:text="${data['ruleParams']['basis'] ?: 'CLOSE'}">CLOSE</span></p>
+    </div>
+
+    <div th:if="${data['ruleKind'] == 'MA_CROSS'}" style="font-size:13px;color:#78350f;">
+      <p style="margin:0;"><strong>Fast MA:</strong> <span th:text="${data['ruleParams']['fast'] ?: 'N/A'}">10</span> bars | <strong>Slow MA:</strong> <span th:text="${data['ruleParams']['slow'] ?: 'N/A'}">20</span> bars</p>
+      <p style="margin:2px 0 0 0;"><strong>Direction:</strong> <span th:text="${data['ruleParams']['direction'] ?: 'UP'}">UP</span></p>
+    </div>
+
+    <div th:if="${data['ruleKind'] == 'RSI'}" style="font-size:13px;color:#78350f;">
+      <p style="margin:0;"><strong>RSI Threshold:</strong> <span th:text="${data['ruleParams']['threshold'] ?: 'N/A'}">70</span></p>
+      <p style="margin:2px 0 0 0;"><strong>Operator:</strong> <span th:text="${data['ruleParams']['operator'] ?: 'ABOVE'}">ABOVE</span> | <strong>Period:</strong> <span th:text="${data['ruleParams']['period'] ?: '14'}">14</span></p>
+      <p style="margin:2px 0 0 0;" th:if="${data['ruleParams']['timeframe']}"><strong>Timeframe:</strong> <span th:text="${data['ruleParams']['timeframe']}">1H</span></p>
+    </div>
+
+    <div th:if="${data['ruleKind'] == 'VOLUME_SPIKE'}" style="font-size:13px;color:#78350f;">
+      <p style="margin:0;"><strong>Operator:</strong> <span th:text="${data['ruleParams']['operator'] ?: 'ABOVE_MA'}">ABOVE_MA</span></p>
+      <p style="margin:2px 0 0 0;" th:if="${data['ruleParams']['multiplier']}"><strong>Multiplier:</strong> <span th:text="${data['ruleParams']['multiplier']}">1.5</span>x</p>
+      <p style="margin:2px 0 0 0;"><strong>Lookback:</strong> <span th:text="${data['ruleParams']['lookback'] ?: '20'}">20</span> bars</p>
+    </div>
+
+    <div th:if="${data['ruleKind'] != null and !#strings.contains('PRICE_THRESHOLD,PCT_CHANGE,MA_CROSS,RSI,VOLUME_SPIKE', data['ruleKind'])}" style="font-size:13px;color:#78350f;">
+      <ul style="margin:0;padding-left:16px;">
+        <li th:each="entry : ${data['ruleParams'].entrySet()}">
+          <strong th:text="${#strings.replace(#strings.replace(entry.key, '_', ' '), entry.key, entry.key)}">param</strong>: <span th:text="${entry.value}">value</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div th:if="${data['payload']}" style="background-color:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:16px;margin-bottom:20px;">
+    <p style="margin:0 0 12px 0;font-weight:600;font-size:14px;color:#0c4a6e;">Event Data</p>
+    <table role="presentation" style="width:100%;border-collapse:collapse;font-size:13px;color:#1e40af;">
+      <tbody>
+      <tr th:each="entry : ${data['payload'].entrySet()}">
+        <td style="padding:3px 8px 3px 0;font-weight:600;width:35%;" th:text="${entry.key}">price</td>
+        <td style="padding:3px 0;" th:text="${entry.value}">123.45</td>
       </tr>
       </tbody>
     </table>
