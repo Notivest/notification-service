@@ -10,13 +10,14 @@
 
   <div style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:18px;background-color:#f9fafb;">
     <p style="margin:0 0 12px 0;font-weight:700;font-size:16px;color:#111827;"
-       th:text="${data['title'] ?: #messages.msg('email.recommendation.titleFallback')}">Recommendation</p>
+      th:text="${data['title'] ?: #messages.msg('email.recommendation.titleFallback')}">Recommendation</p>
 
     <table role="presentation" style="width:100%;border-collapse:collapse;">
       <tbody>
-      <tr th:if="${data['recommendationType']}">
+      <tr th:if="${data['kind'] != null or data['recommendationType'] != null}">
         <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.recommendation.kind')}">Recommendation type</td>
-        <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${#strings.replace(data['recommendationType'], '_', ' ')}">CREATE ALERT</td>
+        <td style="padding:6px 0;font-size:15px;color:#111827;"
+            th:text="${#strings.replace((data['kind'] ?: data['recommendationType']).toString(), '_', ' ')}">PORTFOLIO</td>
       </tr>
       <tr th:if="${data['priority']}">
         <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.recommendation.priority')}">Priority</td>
@@ -36,9 +37,25 @@
     </table>
   </div>
 
+  <div th:if="${data['details']}" style="margin:0 0 16px 0;">
+    <p style="margin:0 0 8px 0;font-weight:600;color:#111827;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
+    <ul style="margin:0;padding-left:20px;color:#374151;font-size:15px;">
+      <li th:each="entry : ${data['details'].entrySet()}">
+        <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
+      </li>
+    </ul>
+  </div>
+
   <div th:if="${data['description']}" style="margin:0 0 16px 0;">
     <p style="margin:0 0 8px 0;font-weight:600;color:#111827;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
     <p style="margin:0;color:#374151;" th:text="${data['description']}">Descripción</p>
+  </div>
+
+  <div th:if="${data['highlights']}" style="margin:0 0 18px 0;">
+    <p style="margin:0 0 8px 0;font-weight:600;color:#111827;" th:text="${#messages.msg('email.recommendation.highlights')}">Highlights</p>
+    <ul style="margin:0;padding-left:20px;color:#374151;font-size:15px;">
+      <li th:each="highlight : ${data['highlights']}" th:text="${highlight}">Highlight</li>
+    </ul>
   </div>
 
   <div th:if="${data['rationale']}" style="margin:0 0 18px 0;">
@@ -57,6 +74,10 @@
        style="display:inline-block;padding:12px 22px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;border-radius:8px;"
        th:text="${#messages.msg('email.recommendation.ctaLabel')}">View recommendation</a>
   </div>
+
+  <p style="margin:0 0 18px 0;color:#6b7280;font-size:13px;" th:text="${#messages.msg('email.recommendation.nextSteps')}">
+    Review your dashboard to take action.
+  </p>
 
   <p style="margin:0;color:#6b7280;font-size:13px;" th:text="${#messages.msg('email.recommendation.dismiss')}">
     You received this email because you have notifications enabled.
