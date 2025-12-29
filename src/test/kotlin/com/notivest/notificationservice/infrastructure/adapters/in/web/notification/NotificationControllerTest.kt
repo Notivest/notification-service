@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.notivest.notificationservice.application.notification.NotificationOutcome
 import com.notivest.notificationservice.application.notification.NotificationRejectReason
 import com.notivest.notificationservice.application.notification.NotifyAlertUseCase
+import com.notivest.notificationservice.application.notification.NotifyRecommendationCommand
 import com.notivest.notificationservice.application.notification.NotifyRecommendationUseCase
 import com.notivest.notificationservice.infrastructure.mapper.NotificationMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.slot
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -81,6 +84,46 @@ class NotificationControllerTest(
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.accepted").value(true))
             .andExpect(jsonPath("$.jobId").value(jobId.toString()))
+    }
+
+    @Test
+    fun `POST recommendation uses extra fields as template data when templateData missing`() {
+        val jobId = UUID.randomUUID()
+        val scheduledAt = Instant.parse("2024-06-01T14:00:00Z")
+        val captured = slot<NotifyRecommendationCommand>()
+        every { notifyRecommendationUseCase.notify(capture(captured)) } returns NotificationOutcome.accepted(jobId, scheduledAt)
+
+        val payload =
+            mapOf(
+                "userId" to UUID.randomUUID().toString(),
+                "fingerprint" to "reco-digest",
+                "occurredAt" to Instant.parse("2025-12-29T02:26:42.630560383Z").toString(),
+                "kind" to "MONITOR",
+                "templateKey" to "recommendation",
+                "count" to 3,
+                "createdAt" to "2025-12-29T02:26:42.630560383Z",
+                "recommendations" to
+                    listOf(
+                        mapOf(
+                            "recommendationId" to "uuid-1",
+                            "title" to "Title",
+                            "priority" to "HIGH",
+                            "symbols" to listOf("AAPL"),
+                        ),
+                    ),
+            )
+
+        mockMvc.perform(
+            post("/api/v1/notify/recommendation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(payload)),
+        )
+            .andExpect(status().isOk)
+
+        val templateData = captured.captured.templateData
+        assertThat(templateData["count"].asInt()).isEqualTo(3)
+        assertThat(templateData["recommendations"].isArray).isTrue()
+        assertThat(templateData["recommendations"][0]["title"].asText()).isEqualTo("Title")
     }
 
     @Test

@@ -1,5 +1,7 @@
 package com.notivest.notificationservice.infrastructure.adapters.`in`.web.notification.dto
 
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.NullNode
 import jakarta.validation.constraints.NotBlank
@@ -29,4 +31,12 @@ data class NotifyRecommendationRequest(
 
     @field:NotNull
     val templateData: JsonNode = NullNode.instance,
-)
+) {
+    @JsonIgnore
+    val extraData: MutableMap<String, Any?> = LinkedHashMap()
+
+    @JsonAnySetter
+    fun putExtra(name: String, value: Any?) {
+        extraData[name] = value
+    }
+}

@@ -1,5 +1,8 @@
 package com.notivest.notificationservice.infrastructure.mapper
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.notivest.notificationservice.application.notification.NotificationOutcome
 import com.notivest.notificationservice.application.notification.NotifyAlertCommand
 import com.notivest.notificationservice.application.notification.NotifyRecommendationCommand
@@ -9,7 +12,9 @@ import com.notivest.notificationservice.infrastructure.adapters.`in`.web.notific
 import org.springframework.stereotype.Component
 
 @Component
-class NotificationMapper {
+class NotificationMapper(
+    private val objectMapper: ObjectMapper,
+) {
 
     fun toCommand(request: NotifyAlertRequest): NotifyAlertCommand =
         NotifyAlertCommand(
@@ -28,7 +33,7 @@ class NotificationMapper {
             occurredAt = requireNotNull(request.occurredAt),
             kind = request.kind.trim(),
             templateKey = request.templateKey.trim(),
-            templateData = request.templateData,
+            templateData = mergeTemplateData(request),
         )
 
     fun toResponse(outcome: NotificationOutcome): NotificationResponse =
@@ -44,4 +49,31 @@ class NotificationMapper {
                 reason = outcome.reason?.name?.lowercase(),
             )
         }
+
+    private fun mergeTemplateData(request: NotifyRecommendationRequest): JsonNode {
+        val base = request.templateData
+        if (request.extraData.isEmpty()) {
+            return base
+        }
+
+        if (base.isObject) {
+            val merged = (base as ObjectNode).deepCopy()
+            request.extraData.forEach { (key, value) ->
+                if (!merged.has(key)) {
+                    merged.set<JsonNode>(key, objectMapper.valueToTree(value))
+                }
+            }
+            return merged
+        }
+
+        if (base.isMissingNode || base.isNull) {
+            val merged = objectMapper.createObjectNode()
+            request.extraData.forEach { (key, value) ->
+                merged.set<JsonNode>(key, objectMapper.valueToTree(value))
+            }
+            return merged
+        }
+
+        return base
+    }
 }
