@@ -45,6 +45,7 @@ class AlertTemplateDataEnricherTest {
                 symbol = "AAPL",
                 quantity = BigDecimal("12.5"),
                 avgCost = BigDecimal("188.12"),
+                bookValue = BigDecimal("2351.50"),
                 updatedAt = Instant.parse("2024-06-01T10:15:00Z"),
             )
         every { portfolioHoldingsQuery.search(userId, listOf("AAPL")) } returns listOf(holding)
@@ -60,6 +61,7 @@ class AlertTemplateDataEnricherTest {
         val first = holdings.get(0)
         assertThat(first.path("portfolioName").asText()).isEqualTo("Cartera USD")
         assertThat(first.path("quantity").asDouble()).isEqualTo(12.5)
+        assertThat(first.path("bookValue").asDouble()).isEqualTo(2351.50)
     }
 
     @Test

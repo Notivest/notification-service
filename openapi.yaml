@@ -42,6 +42,34 @@ paths:
                 $ref: '#/components/schemas/UserContactResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+  /api/v1/contact/bootstrap:
+    post:
+      operationId: bootstrapUserContact
+      summary: Crear contacto si no existe
+      description: >
+        Crea el contacto si no existe y devuelve el registro actual. Si ya existe,
+        retorna el contacto existente sin sobrescribir preferencias. El `userId`
+        y el `primaryEmail` se resuelven a partir del JWT.
+      tags: [Contact]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertUserContactRequest'
+      responses:
+        '200':
+          description: Contacto existente o creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserContactResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/NotFoundProblem'
     post:
@@ -187,7 +215,9 @@ components:
         locale:
           type: string
           nullable: true
-          maxLength: 10
+          maxLength: 2
+          description: Solo en o es.
+          enum: [en, es]
         quietHours:
           allOf:
             - $ref: '#/components/schemas/QuietHours'
@@ -213,7 +243,9 @@ components:
         locale:
           type: string
           nullable: true
-          maxLength: 10
+          maxLength: 2
+          description: Solo en o es.
+          enum: [en, es]
         quietHours:
           allOf:
             - $ref: '#/components/schemas/QuietHours'
@@ -265,7 +297,7 @@ components:
           minLength: 1
           maxLength: 64
         templateData:
-          description: Carga útil flexible utilizada por el motor de plantillas.
+          description: Carga útil flexible utilizada por el motor de plantillas. Opcionalmente incluye ruleTitle y ruleNote para alertas.
           type: object
           additionalProperties: true
       additionalProperties: false

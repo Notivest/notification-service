@@ -23,6 +23,20 @@
           <span th:text="${#strings.toUpperCase(data['severity'] ?: 'INFO')}">INFO</span>
         </td>
       </tr>
+      <tr th:if="${data['ruleTitle'] != null and !#strings.isEmpty(data['ruleTitle'])}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.ruleTitle')}">
+          Rule title
+        </td>
+        <td style="padding:6px 0;font-size:16px;font-weight:600;color:#111827;" th:text="${data['ruleTitle']}">Price alert</td>
+      </tr>
+      <tr th:if="${data['ruleNote'] != null and !#strings.isEmpty(data['ruleNote'])}">
+        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.ruleNote')}">
+          Rule note
+        </td>
+        <td style="padding:6px 0;font-size:15px;color:#111827;white-space:pre-line;" th:text="${data['ruleNote']}">
+          Notify me when it breaks resistance
+        </td>
+      </tr>
       <tr th:if="${data['occurredAt']}">
         <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.alert.occurredAt')}">
           Occurred at
@@ -138,6 +152,8 @@
         <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
             th:text="${#messages.msg('email.alert.holdingsTable.avgCost')}">Average cost</th>
         <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
+            th:text="${#messages.msg('email.alert.holdingsTable.bookValue')}">Book value</th>
+        <th style="text-align:left;padding:6px 0;font-size:13px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;"
             th:text="${#messages.msg('email.alert.holdingsTable.updatedAt')}">Updated at</th>
       </tr>
       </thead>
@@ -146,6 +162,7 @@
         <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['portfolioName']}">Growth Portfolio</td>
         <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['quantity']}">10.5</td>
         <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['avgCost']}">185.32</td>
+        <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${holding['bookValue']}">1945.86</td>
         <td style="padding:6px 0;font-size:14px;color:#6b7280;" th:text="${holding['updatedAt']}">2024-06-01T11:45:30Z</td>
       </tr>
       </tbody>

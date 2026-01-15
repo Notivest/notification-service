@@ -11,7 +11,7 @@ import java.util.UUID
 class UserContactApplicationService(
     private val repository: UserContactRepository,
     private val clock: Clock,
-) : GetUserContactQuery, UpsertUserContactUseCase {
+) : GetUserContactQuery, UpsertUserContactUseCase, EnsureUserContactUseCase {
 
     override fun get(userId: UUID): UserContact? =
         repository.findByUserId(userId)
@@ -32,6 +32,29 @@ class UserContactApplicationService(
                 quietHours = command.quietHours,
                 version = nextVersion,
                 createdAt = existing?.createdAt ?: now,
+                updatedAt = now,
+            )
+
+        return repository.save(contact)
+    }
+
+    override fun ensure(command: UpsertUserContactCommand): UserContact {
+        val existing = repository.findByUserId(command.userId)
+        if (existing != null) {
+            return existing
+        }
+        val now = Instant.now(clock)
+        val channels = command.channels ?: DEFAULT_CHANNELS
+        val contact =
+            UserContact(
+                userId = command.userId,
+                primaryEmail = command.primaryEmail,
+                emailStatus = command.emailStatus,
+                locale = command.locale,
+                channels = channels,
+                quietHours = command.quietHours,
+                version = 0L,
+                createdAt = now,
                 updatedAt = now,
             )
 

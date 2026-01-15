@@ -71,7 +71,7 @@ class ThymeleafEmailTemplateRenderer(
 
     private fun subjectArguments(templateName: String, subjectTarget: String, variables: Map<String, Any?>): Array<Any> =
         when (templateName) {
-            "alert" -> arrayOf(subjectTarget)
+            "alert" -> arrayOf(nonBlankString(variables["ruleTitle"]) ?: subjectTarget)
             "recommendation" -> arrayOf(subjectTarget)
             else -> arrayOf((variables["title"] ?: subjectTarget).toString())
         }
@@ -83,7 +83,11 @@ class ThymeleafEmailTemplateRenderer(
 
     private fun resolveSubjectTarget(variables: Map<String, Any?>): String =
         listOfNotNull(
-            variables["symbol"],
-            variables["title"],
+            nonBlankString(variables["symbol"]),
+            nonBlankString(variables["ruleTitle"]),
+            nonBlankString(variables["title"]),
         ).firstOrNull()?.toString() ?: "item"
+
+    private fun nonBlankString(value: Any?): String? =
+        (value as? String)?.takeIf { it.isNotBlank() }
 }

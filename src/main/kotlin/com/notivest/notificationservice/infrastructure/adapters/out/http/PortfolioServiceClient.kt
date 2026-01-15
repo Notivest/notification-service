@@ -63,6 +63,7 @@ class PortfolioServiceClient(
         val symbol: String,
         val quantity: java.math.BigDecimal,
         val avgCost: java.math.BigDecimal,
+        val bookValue: java.math.BigDecimal,
         val updatedAt: java.time.Instant,
     ) {
         fun toDomain(): PortfolioHolding =
@@ -72,6 +73,7 @@ class PortfolioServiceClient(
                 symbol = symbol,
                 quantity = quantity,
                 avgCost = avgCost,
+                bookValue = bookValue,
                 updatedAt = updatedAt,
             )
     }

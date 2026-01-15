@@ -45,6 +45,7 @@ class PortfolioServiceClientTest {
                 "symbol": "AAPL",
                 "quantity": 12.5,
                 "avgCost": 188.12,
+                "bookValue": 2351.50,
                 "updatedAt": "2024-06-01T10:15:00Z"
               }
             ]
@@ -69,6 +70,7 @@ class PortfolioServiceClientTest {
                     symbol = "AAPL",
                     quantity = BigDecimal("12.5"),
                     avgCost = BigDecimal("188.12"),
+                    bookValue = BigDecimal("2351.50"),
                     updatedAt = Instant.parse("2024-06-01T10:15:00Z"),
                 ),
             )

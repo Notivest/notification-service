@@ -112,4 +112,62 @@ class UserContactApplicationServiceTest {
             )
         }
     }
+
+    @Test
+    fun `ensure returns existing contact without overwriting`() {
+        val userId = UUID.randomUUID()
+        val existingContact =
+            UserContact(
+                userId = userId,
+                primaryEmail = "stored@example.com",
+                emailStatus = EmailStatus.VERIFIED,
+                locale = Locale("es", "AR"),
+                channels = mapOf("email" to true),
+                quietHours = null,
+                version = 5L,
+                createdAt = Instant.parse("2024-02-01T00:00:00Z"),
+                updatedAt = Instant.parse("2024-05-01T00:00:00Z"),
+            )
+        val command =
+            UpsertUserContactCommand(
+                userId = userId,
+                primaryEmail = "new@example.com",
+                emailStatus = EmailStatus.UNVERIFIED,
+                locale = Locale.ENGLISH,
+                channels = null,
+                quietHours = null,
+            )
+
+        every { repository.findByUserId(userId) } returns existingContact
+
+        val result = service.ensure(command)
+
+        assertThat(result).isEqualTo(existingContact)
+        verify(exactly = 0) { repository.save(any()) }
+    }
+
+    @Test
+    fun `ensure creates contact when none exists`() {
+        val userId = UUID.randomUUID()
+        val command =
+            UpsertUserContactCommand(
+                userId = userId,
+                primaryEmail = "user@example.com",
+                emailStatus = EmailStatus.UNVERIFIED,
+                locale = Locale("es"),
+                channels = null,
+                quietHours = null,
+            )
+
+        every { repository.findByUserId(userId) } returns null
+        every { repository.save(any()) } answers { firstArg() }
+
+        val result = service.ensure(command)
+
+        assertThat(result.version).isEqualTo(0L)
+        assertThat(result.createdAt).isEqualTo(fixedInstant)
+        assertThat(result.updatedAt).isEqualTo(fixedInstant)
+        assertThat(result.channels).containsEntry("email", true)
+        verify { repository.save(match { it.userId == userId && it.version == 0L }) }
+    }
 }

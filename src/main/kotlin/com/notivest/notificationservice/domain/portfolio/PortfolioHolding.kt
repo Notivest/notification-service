@@ -10,6 +10,7 @@ data class PortfolioHolding(
     val symbol: String,
     val quantity: BigDecimal,
     val avgCost: BigDecimal,
+    val bookValue: BigDecimal,
     val updatedAt: Instant,
 )
 

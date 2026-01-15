@@ -30,7 +30,7 @@ class UserContactMapper {
             userId = contact.userId,
             primaryEmail = contact.primaryEmail,
             emailStatus = contact.emailStatus,
-            locale = contact.locale?.toLanguageTag(),
+            locale = contact.locale?.language?.takeIf { it.isNotBlank() },
             quietHours = contact.quietHours?.let(::toQuietHoursDto),
             version = contact.version,
             updatedAt = contact.updatedAt,

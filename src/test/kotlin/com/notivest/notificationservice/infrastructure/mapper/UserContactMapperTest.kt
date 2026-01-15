@@ -74,7 +74,7 @@ class UserContactMapperTest {
         val response = mapper.toResponse(contact)
 
         assertThat(response.userId).isEqualTo(contact.userId)
-        assertThat(response.locale).isEqualTo("es-AR")
+        assertThat(response.locale).isEqualTo("es")
         assertThat(response.version).isEqualTo(5)
         assertThat(response.quietHours)
             .usingRecursiveComparison()

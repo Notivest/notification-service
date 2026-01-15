@@ -149,6 +149,8 @@ Idéntico al schema de `GET /api/v1/contact`.
 Encola un envío de alerta por email. Deduplica por `userId` + `fingerprint` dentro de la ventana configurada (`dedup.window-minutes`, por defecto 5 min). Las alertas con `severity = "CRITICAL"` omiten las horas silenciosas.
 
 - **Enriquecimiento automático:** si `templateData.symbol` está presente, el servicio consulta Portfolio Service (`POST /internal/v1/holdings/search`) y añade el arreglo `holdings` al JSON pasado a la plantilla. Cuando no existen posiciones para el símbolo pedido, el arreglo queda vacío.
+- **Severidad:** se espera el valor definido por la regla que originó la alerta.
+- **Campos opcionales:** `templateData.ruleTitle` y `templateData.ruleNote` se muestran en el email cuando vienen informados.
 
 #### Request body
 ```json
@@ -159,7 +161,9 @@ Encola un envío de alerta por email. Deduplica por `userId` + `fingerprint` den
   "severity": "HIGH",
   "templateKey": "alert-default",
   "templateData": {
-    "title": "Límite excedido",
+    "symbol": "AAPL",
+    "ruleTitle": "Alerta de precio",
+    "ruleNote": "Avisame cuando rompa resistencia",
     "amount": 2400.75
   }
 }

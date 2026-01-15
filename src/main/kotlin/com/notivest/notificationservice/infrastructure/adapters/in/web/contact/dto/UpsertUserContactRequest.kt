@@ -3,13 +3,13 @@ package com.notivest.notificationservice.infrastructure.adapters.`in`.web.contac
 import com.notivest.notificationservice.domain.contact.EmailStatus
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 
 data class UpsertUserContactRequest(
     val emailStatus: EmailStatus,
 
-    @field:Size(max = 10)
+    @field:Pattern(regexp = "^(en|es)$")
     val locale: String?,
 
     @field:Valid

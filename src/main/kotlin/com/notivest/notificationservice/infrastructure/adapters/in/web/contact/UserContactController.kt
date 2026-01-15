@@ -1,6 +1,7 @@
 package com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact
 
 import com.notivest.notificationservice.application.contact.GetUserContactQuery
+import com.notivest.notificationservice.application.contact.EnsureUserContactUseCase
 import com.notivest.notificationservice.application.contact.UpsertUserContactUseCase
 import com.notivest.notificationservice.exceptions.InvalidUserEmailException
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.UpsertUserContactRequest
@@ -27,6 +28,7 @@ import java.util.UUID
 class UserContactController(
     private val getUserContactQuery: GetUserContactQuery,
     private val upsertUserContactUseCase: UpsertUserContactUseCase,
+    private val ensureUserContactUseCase: EnsureUserContactUseCase,
     private val mapper: UserContactMapper,
     private val jwtUserIdResolver: JwtUserIdResolver,
     private val jwtEmailResolver: JwtEmailResolver,
@@ -63,6 +65,25 @@ class UserContactController(
         val command = mapper.toCommand(request, userId, primaryEmail)
         val saved = upsertUserContactUseCase.upsert(command)
         return ResponseEntity.ok(mapper.toResponse(saved))
+    }
+
+    @PostMapping("/bootstrap")
+    fun bootstrapContact(
+        @AuthenticationPrincipal jwt: Jwt,
+        @Valid @RequestBody request: UpsertUserContactRequest,
+    ): ResponseEntity<Any> {
+        val userId = resolveUserId(jwt)
+        val primaryEmail =
+            try {
+                jwtEmailResolver.requireEmail(jwt)
+            } catch (ex: InvalidUserEmailException) {
+                return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(problemDetail(HttpStatus.BAD_REQUEST, "email-missing", ex.message ?: "JWT missing email claim"))
+            }
+        val command = mapper.toCommand(request, userId, primaryEmail)
+        val ensured = ensureUserContactUseCase.ensure(command)
+        return ResponseEntity.ok(mapper.toResponse(ensured))
     }
 
     private fun resolveUserId(jwt: Jwt): UUID = jwtUserIdResolver.requireUserId(jwt)

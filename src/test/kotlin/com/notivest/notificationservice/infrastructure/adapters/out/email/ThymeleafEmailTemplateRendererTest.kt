@@ -49,6 +49,8 @@ class ThymeleafEmailTemplateRendererTest {
             {
               "recipientName": "Gonza",
               "symbol": "AAPL",
+              "ruleTitle": "Price alert",
+              "ruleNote": "Notify me when it breaks resistance",
               "severity": "WARN",
               "occurredAt": "2024-06-01T10:15:00Z",
               "details": {
@@ -61,10 +63,12 @@ class ThymeleafEmailTemplateRendererTest {
 
         val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
 
-        assertThat(rendered.subject).isEqualTo("Alert: AAPL")
+        assertThat(rendered.subject).isEqualTo("Alert: Price alert")
         assertThat(rendered.body).contains("Hello Gonza,")
         assertThat(rendered.body).contains("We detected a new alert for AAPL.")
         assertThat(rendered.body).contains("We spotted unusual activity affecting AAPL. Here is the snapshot so you can respond confidently.")
+        assertThat(rendered.body).contains("Price alert")
+        assertThat(rendered.body).contains("Notify me when it breaks resistance")
         assertThat(rendered.body).contains("<span>WARN</span>")
         assertThat(rendered.body).contains("You received this alert based on your current notification preferences.")
         assertThat(rendered.body).doesNotContain("th:text")
@@ -77,6 +81,8 @@ class ThymeleafEmailTemplateRendererTest {
             {
               "recipientName": "Gonza",
               "symbol": "AAPL",
+              "ruleTitle": "Alerta de precio",
+              "ruleNote": "Avisame cuando rompa resistencia",
               "severity": "CRITICAL",
               "occurredAt": "2024-06-01T10:15:00Z",
               "details": {
@@ -89,10 +95,12 @@ class ThymeleafEmailTemplateRendererTest {
 
         val rendered = renderer.render("alert.v1", Locale.forLanguageTag("es-AR"), data)
 
-        assertThat(rendered.subject).isEqualTo("Alerta: AAPL")
+        assertThat(rendered.subject).isEqualTo("Alerta: Alerta de precio")
         assertThat(rendered.body).contains("Hola Gonza,")
         assertThat(rendered.body).contains("Detectamos una nueva alerta para AAPL.")
         assertThat(rendered.body).contains("Registramos actividad inusual en AAPL. A continuación, un resumen para que puedas actuar con rapidez.")
+        assertThat(rendered.body).contains("Alerta de precio")
+        assertThat(rendered.body).contains("Avisame cuando rompa resistencia")
         assertThat(rendered.body).contains("<span>CRITICAL</span>")
         assertThat(rendered.body).contains("Recibiste este aviso según tus preferencias de notificación vigentes.")
         assertThat(rendered.body).doesNotContain("th:text")
@@ -110,6 +118,7 @@ class ThymeleafEmailTemplateRendererTest {
                   "portfolioName": "Cartera USD",
                   "quantity": 12.5,
                   "avgCost": 188.12,
+                  "bookValue": 2351.50,
                   "updatedAt": "2024-06-01T10:15:00Z"
                 }
               ]
@@ -122,6 +131,7 @@ class ThymeleafEmailTemplateRendererTest {
         assertThat(rendered.body).contains("Your holdings in this asset")
         assertThat(rendered.body).contains("Cartera USD")
         assertThat(rendered.body).contains("188.12")
+        assertThat(rendered.body).contains("2351.5")
     }
 
     @Test
