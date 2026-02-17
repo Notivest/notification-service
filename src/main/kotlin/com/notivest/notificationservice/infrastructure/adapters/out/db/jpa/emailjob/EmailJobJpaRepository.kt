@@ -11,4 +11,8 @@ interface EmailJobJpaRepository : JpaRepository<EmailJobEntity, UUID> {
         scheduledAt: Instant,
         pageable: Pageable,
     ): List<EmailJobEntity>
+
+    fun countByUserId(userId: UUID): Long
+
+    fun deleteByUserId(userId: UUID): Long
 }

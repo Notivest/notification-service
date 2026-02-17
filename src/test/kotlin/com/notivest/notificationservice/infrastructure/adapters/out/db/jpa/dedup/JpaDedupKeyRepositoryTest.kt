@@ -1,10 +1,12 @@
 package com.notivest.notificationservice.infrastructure.adapters.out.db.jpa.dedup
 
+import com.notivest.notificationservice.BaseIntegrationTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -14,10 +16,11 @@ import java.time.Instant
 import java.util.UUID
 
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EntityScan(basePackageClasses = [DedupKeyEntity::class])
 @EnableJpaRepositories(basePackageClasses = [DedupKeyJpaRepository::class])
 @Import(JpaDedupKeyRepositoryTest.JpaTestConfiguration::class)
-class JpaDedupKeyRepositoryTest {
+class JpaDedupKeyRepositoryTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var repository: JpaDedupKeyRepository
