@@ -29,11 +29,18 @@ data class EmailJob(
         copy(
             status = EmailJobStatus.FAILED,
             attempts = attempts + 1,
-            error = message,
+            error = sanitizeError(message),
             updatedAt = processedAt,
         )
 
     companion object {
+        private const val MAX_ERROR_LENGTH = 255
+
+        private fun sanitizeError(message: String): String {
+            val normalized = message.trim()
+            return if (normalized.length <= MAX_ERROR_LENGTH) normalized else normalized.take(MAX_ERROR_LENGTH)
+        }
+
         fun pending(
             userId: UUID,
             templateKey: String,

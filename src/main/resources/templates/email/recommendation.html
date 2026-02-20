@@ -1,192 +1,191 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body style="margin:0;padding:0;background-color:#f5f7fa;">
-<div style="max-width:600px;margin:0 auto;padding:24px;background-color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2933;line-height:1.55;"
+<body style="margin:0;padding:0;background-color:#f5f7fb;">
+<div style="max-width:640px;margin:0 auto;padding:24px 14px;font-family:'Geist','Segoe UI',Arial,sans-serif;color:#0f172a;line-height:1.55;"
      th:with="recs=${data['recommendations']}">
 
-    <p style="margin:0 0 16px 0;"
-       th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
-
-    <!-- Digest intro -->
-    <p th:if="${recs != null}"
-       style="margin:0 0 20px 0;"
-       th:text="${#messages.msg('email.recommendation.introDigest', subjectTarget, (data['count'] ?: #lists.size(recs)))}">
-        Here are your new recommendations.
-    </p>
-
-    <!-- Single intro -->
-    <p th:unless="${recs != null}"
-       style="margin:0 0 20px 0;"
-       th:text="${#messages.msg('email.recommendation.intro', subjectTarget)}">
-        Here is a new recommendation.
-    </p>
-
-    <!-- Digest rendering -->
-    <div th:if="${recs != null}">
-        <p style="margin:0 0 12px 0;color:#6b7280;font-size:13px;">
-            <span th:text="${(data['count'] ?: #lists.size(recs))}">3</span>
-            <span th:text="${#messages.msg('email.recommendation.itemsLabel')}">recommendations</span>
-            <span th:if="${data['createdAt'] != null}">
-        · <span th:text="${data['createdAt']}">2025-01-01T10:00:00Z</span>
-      </span>
-        </p>
-
-        <div th:each="rec, iter : ${recs}"
-             style="border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:14px;background-color:#f9fafb;">
-
-            <p style="margin:0 0 10px 0;font-weight:800;font-size:16px;color:#111827;">
-                <span th:text="${iter.index + 1}">1</span><span>. </span>
-                <span th:text="${rec['title'] ?: rec.title ?: #messages.msg('email.recommendation.titleFallback')}">Recommendation</span>
-            </p>
-
-            <table role="presentation" style="width:100%;border-collapse:collapse;">
-                <tbody>
-                <tr th:if="${rec['kind'] != null or rec.kind != null or rec['recommendationType'] != null or rec.recommendationType != null}">
-                    <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                        th:text="${#messages.msg('email.recommendation.kind')}">Recommendation type</td>
-                    <td style="padding:6px 0;font-size:15px;color:#111827;"
-                        th:text="${#strings.replace(((rec['kind'] ?: rec.kind) ?: (rec['recommendationType'] ?: rec.recommendationType)).toString(), '_', ' ')}">PORTFOLIO</td>
-                </tr>
-                <tr th:if="${rec['priority'] != null or rec.priority != null}">
-                    <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                        th:text="${#messages.msg('email.recommendation.priority')}">Priority</td>
-                    <td style="padding:6px 0;font-size:15px;color:#111827;">
-                        <span style="display:inline-block;padding:2px 10px;border-radius:999px;background-color:#e0e7ff;color:#1e3a8a;font-size:12px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;"
-                              th:text="${rec['priority'] ?: rec.priority}">HIGH</span>
-                    </td>
-                </tr>
-                <tr th:if="${rec['createdAt'] != null or rec.createdAt != null}">
-                    <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                        th:text="${#messages.msg('email.recommendation.createdAt')}">Created</td>
-                    <td style="padding:6px 0;font-size:15px;color:#111827;"
-                        th:text="${rec['createdAt'] ?: rec.createdAt}">2025-01-01T10:00:00Z</td>
-                </tr>
-                <tr th:if="${rec['symbols'] != null or rec.symbols != null}">
-                    <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                        th:text="${#messages.msg('email.recommendation.symbols')}">Symbols</td>
-                    <td style="padding:6px 0;font-size:15px;color:#111827;">
-                        <span th:each="sym, sIter : ${(rec['symbols'] ?: rec.symbols)}"
-                              style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;background-color:#e5e7eb;color:#111827;font-size:12px;font-weight:600;"
-                              th:text="${sym}">AAPL</span>
-                    </td>
-                </tr>
-                </tbody>
+  <div style="background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(15,23,42,0.06);">
+    <div style="padding:16px 20px;background-color:#f8fafc;border-bottom:1px solid #e2e8f0;">
+      <table role="presentation" style="width:100%;border-collapse:collapse;">
+        <tbody>
+        <tr>
+          <td style="vertical-align:middle;">
+            <table role="presentation" style="border-collapse:collapse;">
+              <tbody>
+              <tr>
+                <td style="width:28px;height:28px;border-radius:8px;background-color:#111827;color:#ffffff;font-size:14px;font-weight:700;text-align:center;vertical-align:middle;">N</td>
+                <td style="padding-left:10px;vertical-align:middle;">
+                  <div style="font-size:13px;font-weight:700;color:#0f172a;letter-spacing:0.2px;">Notivest</div>
+                  <div style="font-size:11px;color:#64748b;">Recommendation Notification</div>
+                </td>
+              </tr>
+              </tbody>
             </table>
-
-            <div th:if="${rec['description'] != null or rec.description != null}" style="margin:12px 0 0 0;">
-                <p style="margin:0 0 6px 0;font-weight:700;color:#111827;"
-                   th:text="${#messages.msg('email.recommendation.details')}">Details</p>
-                <p style="margin:0;color:#374151;" th:text="${rec['description'] ?: rec.description}">Descripción</p>
+          </td>
+          <td style="text-align:right;vertical-align:middle;" th:if="${recs != null}">
+            <div style="display:inline-block;padding:3px 10px;border:1px solid #d1d5db;border-radius:999px;font-size:11px;font-weight:700;color:#334155;background-color:#ffffff;">
+              <span th:text="${(data['count'] ?: #lists.size(recs))}">3</span> items
             </div>
-
-            <div th:if="${rec['rationale'] != null or rec.rationale != null}" style="margin:12px 0 0 0;">
-                <p style="margin:0 0 6px 0;font-weight:700;color:#111827;"
-                   th:text="${#messages.msg('email.recommendation.rationale')}">Rationale</p>
-                <p style="margin:0;color:#374151;" th:text="${rec['rationale'] ?: rec.rationale}">Rationale</p>
-            </div>
-
-            <div th:if="${rec['rulePreview'] != null or rec.rulePreview != null}"
-                 style="background-color:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px;margin:12px 0 0 0;">
-                <p style="margin:0 0 6px 0;font-weight:700;color:#1e1b4b;"
-                   th:text="${#messages.msg('email.recommendation.rulePreview')}">Rule preview</p>
-                <pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;color:#1f2933;"
-                     th:text="${rec['rulePreview'] ?: rec.rulePreview}">{"kind":"PRICE_THRESHOLD"}</pre>
-            </div>
-
-            <div th:if="${rec['ctaUrl'] != null or rec.ctaUrl != null}" style="text-align:center;margin:14px 0 0 0;">
-                <a th:href="${rec['ctaUrl'] ?: rec.ctaUrl}"
-                   style="display:inline-block;padding:10px 18px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;border-radius:8px;"
-                   th:text="${#messages.msg('email.recommendation.ctaLabel')}">View recommendation</a>
-            </div>
-        </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- Single rendering (backwards compatible) -->
-    <div th:unless="${recs != null}"
-         style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:18px;background-color:#f9fafb;">
-        <p style="margin:0 0 12px 0;font-weight:800;font-size:16px;color:#111827;"
+    <div style="padding:22px 20px 24px 20px;">
+      <p style="margin:0 0 14px 0;font-size:15px;color:#334155;" th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
+
+      <p th:if="${recs != null}"
+         style="margin:0 0 6px 0;font-size:26px;line-height:1.2;font-weight:700;color:#0f172a;"
+         th:text="${#messages.msg('email.recommendation.introDigest', subjectTarget, (data['count'] ?: #lists.size(recs)))}">
+        Here are your new recommendations.
+      </p>
+
+      <p th:unless="${recs != null}"
+         style="margin:0 0 6px 0;font-size:26px;line-height:1.2;font-weight:700;color:#0f172a;"
+         th:text="${#messages.msg('email.recommendation.intro', subjectTarget)}">
+        Here is a new recommendation.
+      </p>
+
+      <p style="margin:0 0 18px 0;font-size:14px;color:#475569;">Built to match your current portfolio context.</p>
+
+      <div th:if="${recs != null}">
+        <div th:each="rec, iter : ${recs}" style="border:1px solid #e2e8f0;border-radius:12px;background-color:#ffffff;padding:14px;margin-bottom:12px;">
+          <p style="margin:0 0 8px 0;font-size:17px;line-height:1.3;font-weight:700;color:#0f172a;">
+            <span th:text="${iter.index + 1}">1</span>. <span th:text="${rec['title'] ?: rec.title ?: #messages.msg('email.recommendation.titleFallback')}">Recommendation</span>
+          </p>
+
+          <table role="presentation" style="width:100%;border-collapse:collapse;">
+            <tbody>
+            <tr th:if="${rec['kind'] != null or rec.kind != null or rec['recommendationType'] != null or rec.recommendationType != null}">
+              <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.kind')}">Recommendation type</td>
+              <td style="padding:5px 0;font-size:14px;color:#0f172a;font-weight:600;" th:text="${#strings.replace(((rec['kind'] ?: rec.kind) ?: (rec['recommendationType'] ?: rec.recommendationType)).toString(), '_', ' ')}">PORTFOLIO</td>
+            </tr>
+            <tr th:if="${rec['priority'] != null or rec.priority != null}">
+              <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.priority')}">Priority</td>
+              <td style="padding:5px 0;font-size:14px;color:#0f172a;"><span th:text="${rec['priority'] ?: rec.priority}">HIGH</span></td>
+            </tr>
+            <tr th:if="${rec['createdAt'] != null or rec.createdAt != null}">
+              <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.createdAt')}">Created</td>
+              <td style="padding:5px 0;font-size:14px;color:#0f172a;" th:text="${rec['createdAt'] ?: rec.createdAt}">2025-01-01T10:00:00Z</td>
+            </tr>
+            <tr th:if="${rec['symbols'] != null or rec.symbols != null}">
+              <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;vertical-align:top;" th:text="${#messages.msg('email.recommendation.symbols')}">Symbols</td>
+              <td style="padding:5px 0;font-size:14px;color:#0f172a;">
+                <span th:each="sym : ${(rec['symbols'] ?: rec.symbols)}"
+                      style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;background-color:#f1f5f9;border:1px solid #e2e8f0;color:#334155;font-size:11px;font-weight:600;"
+                      th:text="${sym}">AAPL</span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+          <div th:if="${rec['description'] != null or rec.description != null}" style="margin-top:10px;">
+            <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
+            <p style="margin:0;font-size:14px;color:#334155;" th:text="${rec['description'] ?: rec.description}">Description</p>
+          </div>
+
+          <div th:if="${rec['rationale'] != null or rec.rationale != null}" style="margin-top:10px;">
+            <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.rationale')}">Rationale</p>
+            <p style="margin:0;font-size:14px;color:#334155;" th:text="${rec['rationale'] ?: rec.rationale}">Rationale</p>
+          </div>
+
+          <div th:if="${rec['rulePreview'] != null or rec.rulePreview != null}" style="margin-top:10px;padding:10px;border:1px solid #e2e8f0;border-radius:10px;background-color:#f8fafc;">
+            <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.rulePreview')}">Rule preview</p>
+            <pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;color:#334155;" th:text="${rec['rulePreview'] ?: rec.rulePreview}">{"kind":"PRICE_THRESHOLD"}</pre>
+          </div>
+
+          <div th:if="${rec['ctaUrl'] != null or rec.ctaUrl != null}" style="margin-top:12px;">
+            <a th:href="${rec['ctaUrl'] ?: rec.ctaUrl}"
+               style="display:inline-block;padding:10px 16px;background-color:#111827;color:#ffffff;text-decoration:none;font-weight:700;border-radius:10px;"
+               th:text="${#messages.msg('email.recommendation.ctaLabel')}">View recommendation</a>
+          </div>
+        </div>
+      </div>
+
+      <div th:unless="${recs != null}" style="border:1px solid #e2e8f0;border-radius:12px;background-color:#ffffff;padding:14px;margin-bottom:12px;">
+        <p style="margin:0 0 8px 0;font-size:17px;line-height:1.3;font-weight:700;color:#0f172a;"
            th:text="${data['title'] ?: #messages.msg('email.recommendation.titleFallback')}">Recommendation</p>
 
         <table role="presentation" style="width:100%;border-collapse:collapse;">
-            <tbody>
-            <tr th:if="${data['kind'] != null or data['recommendationType'] != null}">
-                <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                    th:text="${#messages.msg('email.recommendation.kind')}">Recommendation type</td>
-                <td style="padding:6px 0;font-size:15px;color:#111827;"
-                    th:text="${#strings.replace((data['kind'] ?: data['recommendationType']).toString(), '_', ' ')}">PORTFOLIO</td>
-            </tr>
-            <tr th:if="${data['priority']}">
-                <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                    th:text="${#messages.msg('email.recommendation.priority')}">Priority</td>
-                <td style="padding:6px 0;font-size:15px;color:#111827;">
-                    <span style="display:inline-block;padding:2px 10px;border-radius:999px;background-color:#e0e7ff;color:#1e3a8a;font-size:12px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;"
-                          th:text="${data['priority']}">HIGH</span>
-                </td>
-            </tr>
-            <tr th:if="${data['createdAt']}">
-                <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                    th:text="${#messages.msg('email.recommendation.createdAt')}">Created</td>
-                <td style="padding:6px 0;font-size:15px;color:#111827;" th:text="${data['createdAt']}">2025-01-01T10:00:00Z</td>
-            </tr>
-            <tr th:if="${data['symbols']}">
-                <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;"
-                    th:text="${#messages.msg('email.recommendation.symbols')}">Symbols</td>
-                <td style="padding:6px 0;font-size:15px;color:#111827;">
-                    <span th:each="sym, iter : ${data['symbols']}"
-                          style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;background-color:#e5e7eb;color:#111827;font-size:12px;font-weight:600;"
-                          th:text="${sym}">AAPL</span>
-                </td>
-            </tr>
-            </tbody>
+          <tbody>
+          <tr th:if="${data['kind'] != null or data['recommendationType'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.kind')}">Recommendation type</td>
+            <td style="padding:5px 0;font-size:14px;color:#0f172a;font-weight:600;" th:text="${#strings.replace((data['kind'] ?: data['recommendationType']).toString(), '_', ' ')}">PORTFOLIO</td>
+          </tr>
+          <tr th:if="${data['priority'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.priority')}">Priority</td>
+            <td style="padding:5px 0;font-size:14px;color:#0f172a;"><span th:text="${data['priority']}">HIGH</span></td>
+          </tr>
+          <tr th:if="${data['createdAt'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.createdAt')}">Created</td>
+            <td style="padding:5px 0;font-size:14px;color:#0f172a;" th:text="${data['createdAt']}">2025-01-01T10:00:00Z</td>
+          </tr>
+          <tr th:if="${data['symbols'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;vertical-align:top;" th:text="${#messages.msg('email.recommendation.symbols')}">Symbols</td>
+            <td style="padding:5px 0;font-size:14px;color:#0f172a;">
+              <span th:each="sym : ${data['symbols']}"
+                    style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;background-color:#f1f5f9;border:1px solid #e2e8f0;color:#334155;font-size:11px;font-weight:600;"
+                    th:text="${sym}">AAPL</span>
+            </td>
+          </tr>
+          </tbody>
         </table>
-    </div>
+      </div>
 
-    <div th:if="${recs == null and data['details'] != null}" style="margin:0 0 16px 0;">
-        <p style="margin:0 0 8px 0;font-weight:700;color:#111827;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
-        <ul style="margin:0;padding-left:20px;color:#374151;font-size:15px;">
-            <li th:each="entry : ${data['details'].entrySet()}">
-                <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
-            </li>
+      <div th:if="${recs == null and data['details'] != null}" style="margin-bottom:12px;">
+        <p style="margin:0 0 6px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          <tbody>
+          <tr th:if="${data['details']['score'] != null}">
+            <td style="padding:4px 0;width:40%;font-size:13px;color:#64748b;">Score</td>
+            <td style="padding:4px 0;font-size:14px;color:#334155;" th:text="${data['details']['score']}">0.82</td>
+          </tr>
+          <tr th:if="${data['details']['confidence'] != null}">
+            <td style="padding:4px 0;width:40%;font-size:13px;color:#64748b;">Confidence</td>
+            <td style="padding:4px 0;font-size:14px;color:#334155;" th:text="${data['details']['confidence']}">HIGH</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div th:if="${recs == null and data['description'] != null}" style="margin-bottom:12px;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
+        <p style="margin:0;font-size:14px;color:#334155;" th:text="${data['description']}">Description</p>
+      </div>
+
+      <div th:if="${recs == null and data['highlights'] != null}" style="margin-bottom:12px;">
+        <p style="margin:0 0 6px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.highlights')}">Highlights</p>
+        <ul style="margin:0;padding-left:18px;color:#334155;font-size:14px;">
+          <li th:each="highlight : ${data['highlights']}" th:text="${highlight}">Highlight</li>
         </ul>
-    </div>
+      </div>
 
-    <div th:if="${recs == null and data['description'] != null}" style="margin:0 0 16px 0;">
-        <p style="margin:0 0 8px 0;font-weight:700;color:#111827;" th:text="${#messages.msg('email.recommendation.details')}">Details</p>
-        <p style="margin:0;color:#374151;" th:text="${data['description']}">Descripción</p>
-    </div>
+      <div th:if="${recs == null and data['rationale'] != null}" style="margin-bottom:12px;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.rationale')}">Rationale</p>
+        <p style="margin:0;font-size:14px;color:#334155;" th:text="${data['rationale']}">Rationale</p>
+      </div>
 
-    <div th:if="${recs == null and data['highlights'] != null}" style="margin:0 0 18px 0;">
-        <p style="margin:0 0 8px 0;font-weight:700;color:#111827;" th:text="${#messages.msg('email.recommendation.highlights')}">Highlights</p>
-        <ul style="margin:0;padding-left:20px;color:#374151;font-size:15px;">
-            <li th:each="highlight : ${data['highlights']}" th:text="${highlight}">Highlight</li>
-        </ul>
-    </div>
+      <div th:if="${recs == null and data['rulePreview'] != null}" style="margin-bottom:12px;padding:10px;border:1px solid #e2e8f0;border-radius:10px;background-color:#f8fafc;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.recommendation.rulePreview')}">Rule preview</p>
+        <pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;color:#334155;" th:text="${data['rulePreview']}">{"kind":"PRICE_THRESHOLD"}</pre>
+      </div>
 
-    <div th:if="${recs == null and data['rationale'] != null}" style="margin:0 0 18px 0;">
-        <p style="margin:0 0 8px 0;font-weight:700;color:#111827;" th:text="${#messages.msg('email.recommendation.rationale')}">Rationale</p>
-        <p style="margin:0;color:#374151;" th:text="${data['rationale']}">Rationale</p>
-    </div>
-
-    <div th:if="${recs == null and data['rulePreview'] != null}" style="background-color:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:14px;margin:0 0 18px 0;">
-        <p style="margin:0 0 8px 0;font-weight:700;color:#1e1b4b;" th:text="${#messages.msg('email.recommendation.rulePreview')}">Rule preview</p>
-        <pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;color:#1f2933;"
-             th:text="${data['rulePreview']}">{"kind":"PRICE_THRESHOLD"}</pre>
-    </div>
-
-    <div th:if="${recs == null and data['ctaUrl'] != null}" style="text-align:center;margin:0 0 18px 0;">
+      <div th:if="${recs == null and data['ctaUrl'] != null}" style="margin-bottom:14px;">
         <a th:href="${data['ctaUrl']}"
-           style="display:inline-block;padding:12px 22px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;border-radius:8px;"
+           style="display:inline-block;padding:10px 16px;background-color:#111827;color:#ffffff;text-decoration:none;font-weight:700;border-radius:10px;"
            th:text="${#messages.msg('email.recommendation.ctaLabel')}">View recommendation</a>
-    </div>
+      </div>
 
-    <p style="margin:0 0 18px 0;color:#6b7280;font-size:13px;" th:text="${#messages.msg('email.recommendation.nextSteps')}">
+      <p style="margin:0 0 10px 0;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.nextSteps')}">
         Review your dashboard to take action.
-    </p>
-
-    <p style="margin:0;color:#6b7280;font-size:13px;" th:text="${#messages.msg('email.recommendation.dismiss')}">
+      </p>
+      <p style="margin:0 0 12px 0;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.recommendation.dismiss')}">
         You received this email because you have notifications enabled.
-    </p>
-    <p style="margin:16px 0 0 0;" th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
+      </p>
+      <p style="margin:0;font-size:14px;color:#334155;" th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
+    </div>
+  </div>
 </div>
 </body>
 </html>

@@ -152,6 +152,118 @@ class ThymeleafEmailTemplateRendererTest {
     }
 
     @Test
+    fun `render alert template hides technical ids and raw payload keys`() {
+        val data = objectMapper.readTree(
+            """
+            {
+              "recipientName": "Gonza",
+              "symbol": "AAPL",
+              "eventId": "550e8400-e29b-41d4-a716-446655440000",
+              "ruleId": "550e8400-e29b-41d4-a716-446655440001",
+              "payload": {
+                "lastPrice": "188.12",
+                "delta": "8.12",
+                "asOf": "2025-01-01T10:00:00Z"
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
+
+        assertThat(rendered.body).doesNotContain("Event ID:")
+        assertThat(rendered.body).doesNotContain("Rule ID:")
+        assertThat(rendered.body).contains("Difference vs threshold")
+        assertThat(rendered.body).contains("Detected at")
+        assertThat(rendered.body).doesNotContain(">asOf<")
+        assertThat(rendered.body).doesNotContain(">delta<")
+    }
+
+    @Test
+    fun `render alert template normalizes generic payload and rule params`() {
+        val data = objectMapper.readTree(
+            """
+            {
+              "recipientName": "Gonza",
+              "symbol": "AAPL",
+              "ruleKind": "ATR_BREAKOUT",
+              "payload": {
+                "distanceATR": 2.5,
+                "atrPeriod": 14,
+                "direction": "CROSSING_UP"
+              },
+              "ruleParams": {
+                "distanceATR": 2.5,
+                "atrPeriod": 14,
+                "basis": "HLC3"
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
+
+        assertThat(rendered.body).contains("Distance (ATR)")
+        assertThat(rendered.body).contains("ATR period")
+        assertThat(rendered.body).contains("CROSSING UP")
+        assertThat(rendered.body).contains("Basis")
+        assertThat(rendered.body).contains("HLC3")
+        assertThat(rendered.body).doesNotContain(">distanceATR<")
+        assertThat(rendered.body).doesNotContain(">atrPeriod<")
+    }
+
+    @Test
+    fun `render alert template supports every alert kind without failing`() {
+        val allAlertKinds = listOf(
+            "PRICE_THRESHOLD",
+            "PCT_CHANGE",
+            "DRAWDOWN",
+            "MA_CROSS",
+            "RSI",
+            "VOLUME_SPIKE",
+            "ATR_BREAKOUT",
+            "TRAILING_STOP",
+            "BB_TOUCH",
+            "MACD_CROSS",
+            "GAP_SESSION",
+            "DRAWDOWN_FROM_MAX",
+            "CANDLE_PATTERN",
+            "POSITION_PNL",
+            "PORTFOLIO_DRAWDOWN",
+            "REBALANCE_DRIFT",
+            "EARNINGS_WINDOW",
+            "NEWS_SENTIMENT",
+        )
+
+        allAlertKinds.forEach { kind ->
+            val data = objectMapper.readTree(
+                """
+                {
+                  "recipientName": "Gonza",
+                  "symbol": "AAPL",
+                  "ruleKind": "$kind",
+                  "payload": {
+                    "asOf": "2025-01-01T10:00:00Z",
+                    "customMetric": 42
+                  },
+                  "ruleParams": {
+                    "operator": "GTE",
+                    "value": 100
+                  }
+                }
+                """.trimIndent(),
+            )
+
+            val rendered = renderer.render("alert.v1", Locale.ENGLISH, data)
+
+            assertThat(rendered.body).contains("Rule type")
+            assertThat(rendered.body).contains(kind.replace("_", " "))
+            assertThat(rendered.body).contains("Custom Metric")
+            assertThat(rendered.body).contains("Condition")
+        }
+    }
+
+    @Test
     fun `render recommendation template in English`() {
         val data = objectMapper.readTree(
             """

@@ -1,202 +1,180 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body style="margin:0;padding:0;background-color:#f5f7fa;">
-<div style="max-width:600px;margin:0 auto;padding:24px;background-color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2933;line-height:1.55;">
-  <p style="margin:0 0 16px 0;" th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
-
-  <p style="margin:0 0 10px 0;font-size:18px;font-weight:700;color:#111827;"
-     th:text="${#messages.msg('email.performance.subject', data['portfolioName'] ?: 'your portfolio')}">
-    Portfolio performance update
-  </p>
-  <p style="margin:0 0 24px 0;color:#374151;font-size:14px;"
-     th:text="${#messages.msg('email.performance.intro', data['periodLabel'] ?: (data['period'] ?: 'period'))}">
-    Here is a summary of your performance vs key benchmarks.
-  </p>
-
-  <!-- Summary -->
-  <div style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;background-color:#f9fafb;">
-    <p style="margin:0 0 12px 0;font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;color:#6b7280;"
-       th:text="${#messages.msg('email.performance.summaryHeading')}">
-      Summary
-    </p>
-
-    <table role="presentation" style="width:100%;border-collapse:collapse;">
-      <tbody>
-      <tr>
-        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.performance.status')}">Status</td>
-        <td style="padding:6px 0;font-size:16px;font-weight:700;color:#111827;">
-          <span th:text="${#strings.toUpperCase(data['status'] ?: 'MATCHING')}">MATCHING</span>
-        </td>
-      </tr>
-      <tr th:if="${data['analysisDate']}">
-        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.performance.analysisDate')}">Analysis date</td>
-        <td style="padding:6px 0;font-size:14px;color:#111827;" th:text="${data['analysisDate']}">2025-12-13T12:00:00Z</td>
-      </tr>
-      <tr th:if="${data['portfolioName']}">
-        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.performance.portfolio')}">Portfolio</td>
-        <td style="padding:6px 0;font-size:14px;color:#111827;" th:text="${data['portfolioName']}">Main</td>
-      </tr>
-      <tr th:if="${data['primaryBenchmarkName'] != null or data['primaryBenchmark'] != null}">
-        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.performance.primaryBenchmark')}">Primary benchmark</td>
-        <td style="padding:6px 0;font-size:14px;color:#111827;">
-          <span th:text="${data['primaryBenchmarkName'] ?: data['primaryBenchmark']}">S&amp;P 500</span>
-        </td>
-      </tr>
-      <tr th:if="${data['currency']}">
-        <td style="padding:6px 0;width:40%;font-size:14px;color:#6b7280;" th:text="${#messages.msg('email.performance.currency')}">Currency</td>
-        <td style="padding:6px 0;font-size:14px;color:#111827;" th:text="${data['currency']}">USD</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- KPI Comparison -->
-  <div style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;background-color:#ffffff;">
-    <p style="margin:0 0 12px 0;font-weight:600;font-size:16px;color:#111827;"
-       th:text="${#messages.msg('email.performance.kpiHeading')}">
-      Performance vs benchmark
-    </p>
-
-    <table role="presentation" style="width:100%;border-collapse:collapse;">
-      <thead>
-      <tr>
-        <th style="text-align:left;padding:6px 0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;"
-            th:text="${#messages.msg('email.performance.entity')}">Entity</th>
-        <th style="text-align:right;padding:6px 0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;"
-            th:text="${#messages.msg('email.performance.totalReturn')}">Total return</th>
-        <th style="text-align:right;padding:6px 0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;"
-            th:text="${#messages.msg('email.performance.volatility')}">Volatility</th>
-        <th style="text-align:right;padding:6px 0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;"
-            th:text="${#messages.msg('email.performance.maxDrawdown')}">Max drawdown</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr style="border-top:1px solid #f3f4f6;">
-        <td style="padding:10px 0;font-size:14px;color:#111827;font-weight:700;"
-            th:text="${data['portfolioLabel'] ?: (data['portfolioName'] ?: 'Portfolio')}">Portfolio</td>
-        <td style="padding:10px 0;font-size:14px;color:#111827;text-align:right;font-weight:700;"
-            th:text="${data['portfolioTotalReturnPct'] ?: 'N/A'}">-2.15%</td>
-        <td style="padding:10px 0;font-size:14px;color:#111827;text-align:right;"
-            th:text="${data['portfolioVolatilityPct'] ?: 'N/A'}">18.40%</td>
-        <td style="padding:10px 0;font-size:14px;color:#111827;text-align:right;"
-            th:text="${data['portfolioMaxDrawdownPct'] ?: 'N/A'}">-9.70%</td>
-      </tr>
-
-      <tr th:each="b : ${data['benchmarks']}" style="border-top:1px solid #f3f4f6;">
-        <td style="padding:10px 0;font-size:14px;color:#111827;" th:text="${b['name'] ?: b['code'] ?: 'Benchmark'}">S&amp;P 500</td>
-        <td style="padding:10px 0;font-size:14px;color:#111827;text-align:right;" th:text="${b['totalReturnPct'] ?: 'N/A'}">3.10%</td>
-        <td style="padding:10px 0;font-size:14px;color:#111827;text-align:right;" th:text="${b['volatilityPct'] ?: 'N/A'}">14.20%</td>
-        <td style="padding:10px 0;font-size:14px;color:#111827;text-align:right;" th:text="${b['maxDrawdownPct'] ?: 'N/A'}">-6.10%</td>
-      </tr>
-      </tbody>
-    </table>
-
-    <div style="margin-top:14px;padding:12px 14px;border-radius:10px;background-color:#eef2ff;border:1px solid #c7d2fe;">
-      <p style="margin:0 0 6px 0;font-weight:700;color:#3730a3;font-size:13px;"
-         th:text="${#messages.msg('email.performance.relativeHeading')}">
-        Relative metrics
-      </p>
-      <table role="presentation" style="width:100%;border-collapse:collapse;font-size:13px;color:#1f2933;">
+<body style="margin:0;padding:0;background-color:#f5f7fb;">
+<div style="max-width:640px;margin:0 auto;padding:24px 14px;font-family:'Geist','Segoe UI',Arial,sans-serif;color:#0f172a;line-height:1.55;">
+  <div style="background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(15,23,42,0.06);">
+    <div style="padding:16px 20px;background-color:#f8fafc;border-bottom:1px solid #e2e8f0;">
+      <table role="presentation" style="width:100%;border-collapse:collapse;">
         <tbody>
-        <tr th:if="${data['alphaPctAnnualized'] != null}">
-          <td style="padding:4px 0;width:40%;color:#6b7280;" th:text="${#messages.msg('email.performance.alpha')}">Alpha (annualized)</td>
-          <td style="padding:4px 0;font-weight:700;" th:text="${data['alphaPctAnnualized']}">-4.80%</td>
-        </tr>
-        <tr th:if="${data['beta'] != null}">
-          <td style="padding:4px 0;width:40%;color:#6b7280;" th:text="${#messages.msg('email.performance.beta')}">Beta</td>
-          <td style="padding:4px 0;font-weight:700;" th:text="${data['beta']}">1.12</td>
-        </tr>
-        <tr th:if="${data['correlation'] != null}">
-          <td style="padding:4px 0;width:40%;color:#6b7280;" th:text="${#messages.msg('email.performance.correlation')}">Correlation</td>
-          <td style="padding:4px 0;font-weight:700;" th:text="${data['correlation']}">0.86</td>
-        </tr>
-        <tr th:if="${data['sharpe'] != null}">
-          <td style="padding:4px 0;width:40%;color:#6b7280;" th:text="${#messages.msg('email.performance.sharpe')}">Sharpe</td>
-          <td style="padding:4px 0;font-weight:700;" th:text="${data['sharpe']}">0.35</td>
+        <tr>
+          <td style="vertical-align:middle;">
+            <table role="presentation" style="border-collapse:collapse;">
+              <tbody>
+              <tr>
+                <td style="width:28px;height:28px;border-radius:8px;background-color:#111827;color:#ffffff;font-size:14px;font-weight:700;text-align:center;vertical-align:middle;">N</td>
+                <td style="padding-left:10px;vertical-align:middle;">
+                  <div style="font-size:13px;font-weight:700;color:#0f172a;letter-spacing:0.2px;">Notivest</div>
+                  <div style="font-size:11px;color:#64748b;">Performance Summary</div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </td>
+          <td style="text-align:right;vertical-align:middle;" th:if="${data['status'] != null}">
+            <div style="display:inline-block;padding:3px 10px;border:1px solid #d1d5db;border-radius:999px;font-size:11px;font-weight:700;color:#334155;background-color:#ffffff;" th:text="${#strings.replace(#strings.toUpperCase(data['status']), '_', ' ')}">MATCHING</div>
+          </td>
         </tr>
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- Data quality -->
-  <div th:if="${data['freshnessStatus'] != null or data['oldestHoldingAge'] != null}"
-       style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px;margin-bottom:24px;">
-    <p style="margin:0 0 8px 0;font-weight:700;font-size:14px;color:#9a3412;"
-       th:text="${#messages.msg('email.performance.dataQualityHeading')}">
-      Data quality
-    </p>
-    <p style="margin:0;font-size:13px;color:#7c2d12;">
-      <span th:if="${data['freshnessStatus']}" th:text="${#strings.toUpperCase(data['freshnessStatus'])}">WARNING</span>
-      <span th:if="${data['oldestHoldingAge']}" th:text="${#messages.msg('email.performance.oldestHolding', data['oldestHoldingAge'])}"> • Oldest holding: 36h</span>
-    </p>
-  </div>
+    <div style="padding:22px 20px 24px 20px;">
+      <p style="margin:0 0 14px 0;font-size:15px;color:#334155;" th:text="${#messages.msg('email.common.greeting', recipientName)}">Hello there,</p>
 
-  <!-- Insights -->
-  <div th:if="${data['recommendationTitle'] != null or data['keyFindings'] != null or data['suggestedActions'] != null}"
-       style="border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;background-color:#ffffff;">
-    <p style="margin:0 0 10px 0;font-weight:700;font-size:16px;color:#111827;"
-       th:text="${data['recommendationTitle'] ?: #messages.msg('email.performance.insightsHeading')}">
-      What this means
-    </p>
-    <p style="margin:0 0 14px 0;color:#374151;font-size:14px;"
-       th:if="${data['recommendationDescription']}"
-       th:text="${data['recommendationDescription']}">
-      Summary description here.
-    </p>
-
-    <div th:if="${data['keyFindings']}" style="margin:0 0 14px 0;">
-      <p style="margin:0 0 8px 0;font-weight:700;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;"
-         th:text="${#messages.msg('email.performance.keyFindings')}">
-        Key findings
+      <p style="margin:0 0 6px 0;font-size:26px;line-height:1.2;font-weight:700;color:#0f172a;"
+         th:text="${#messages.msg('email.performance.subject', data['portfolioName'] ?: 'your portfolio')}">
+        Portfolio performance update
       </p>
-      <ul style="margin:0;padding-left:18px;color:#374151;font-size:14px;">
-        <li th:each="k : ${data['keyFindings']}" th:text="${k}">Finding</li>
-      </ul>
-    </div>
-
-    <div th:if="${data['suggestedActions']}" style="margin:0;">
-      <p style="margin:0 0 8px 0;font-weight:700;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;"
-         th:text="${#messages.msg('email.performance.suggestedActions')}">
-        Suggested actions
+      <p style="margin:0 0 20px 0;font-size:14px;color:#475569;"
+         th:text="${#messages.msg('email.performance.intro', data['periodLabel'] ?: (data['period'] ?: 'period'))}">
+        Here is a summary of your performance vs key benchmarks.
       </p>
-      <ul style="margin:0;padding-left:18px;color:#374151;font-size:14px;">
-        <li th:each="a : ${data['suggestedActions']}">
-          <span th:if="${a['title']}" th:text="${a['title']}">Action</span>
-          <span th:if="${a['detail']}" th:text="${' — ' + a['detail']}"> — Detail</span>
-        </li>
-      </ul>
+
+      <div style="border:1px solid #e2e8f0;border-radius:12px;background-color:#ffffff;padding:16px;margin-bottom:16px;">
+        <p style="margin:0 0 10px 0;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:#64748b;"
+           th:text="${#messages.msg('email.performance.summaryHeading')}">
+          Summary
+        </p>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          <tbody>
+          <tr>
+            <td style="padding:6px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.status')}">Status</td>
+            <td style="padding:6px 0;font-size:14px;font-weight:700;color:#0f172a;" th:text="${#strings.replace(#strings.toUpperCase(data['status'] ?: 'MATCHING'), '_', ' ')}">MATCHING</td>
+          </tr>
+          <tr th:if="${data['analysisDate'] != null}">
+            <td style="padding:6px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.analysisDate')}">Analysis date</td>
+            <td style="padding:6px 0;font-size:14px;color:#0f172a;" th:text="${data['analysisDate']}">2025-12-13T12:00:00Z</td>
+          </tr>
+          <tr th:if="${data['portfolioName'] != null}">
+            <td style="padding:6px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.portfolio')}">Portfolio</td>
+            <td style="padding:6px 0;font-size:14px;color:#0f172a;font-weight:600;" th:text="${data['portfolioName']}">Main</td>
+          </tr>
+          <tr th:if="${data['primaryBenchmarkName'] != null or data['primaryBenchmark'] != null}">
+            <td style="padding:6px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.primaryBenchmark')}">Primary benchmark</td>
+            <td style="padding:6px 0;font-size:14px;color:#0f172a;" th:text="${data['primaryBenchmarkName'] ?: data['primaryBenchmark']}">S&amp;P 500</td>
+          </tr>
+          <tr th:if="${data['currency'] != null}">
+            <td style="padding:6px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.currency')}">Currency</td>
+            <td style="padding:6px 0;font-size:14px;color:#0f172a;" th:text="${data['currency']}">USD</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:12px;background-color:#ffffff;padding:16px;margin-bottom:16px;">
+        <p style="margin:0 0 10px 0;font-size:16px;font-weight:700;color:#0f172a;"
+           th:text="${#messages.msg('email.performance.kpiHeading')}">
+          Performance vs benchmark
+        </p>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          <thead>
+          <tr>
+            <th style="text-align:left;padding:6px 0;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700;" th:text="${#messages.msg('email.performance.entity')}">Entity</th>
+            <th style="text-align:right;padding:6px 0;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700;" th:text="${#messages.msg('email.performance.totalReturn')}">Total return</th>
+            <th style="text-align:right;padding:6px 0;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700;" th:text="${#messages.msg('email.performance.volatility')}">Volatility</th>
+            <th style="text-align:right;padding:6px 0;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700;" th:text="${#messages.msg('email.performance.maxDrawdown')}">Max drawdown</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr style="border-top:1px solid #f1f5f9;">
+            <td style="padding:8px 0;font-size:14px;color:#0f172a;font-weight:700;" th:text="${data['portfolioLabel'] ?: (data['portfolioName'] ?: 'Portfolio')}">Portfolio</td>
+            <td style="padding:8px 0;font-size:14px;color:#0f172a;text-align:right;font-weight:700;" th:text="${data['portfolioTotalReturnPct'] ?: 'N/A'}">-2.15%</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;text-align:right;" th:text="${data['portfolioVolatilityPct'] ?: 'N/A'}">18.40%</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;text-align:right;" th:text="${data['portfolioMaxDrawdownPct'] ?: 'N/A'}">-9.70%</td>
+          </tr>
+          <tr th:each="b : ${data['benchmarks']}" style="border-top:1px solid #f1f5f9;">
+            <td style="padding:8px 0;font-size:14px;color:#334155;" th:text="${b['name'] ?: b['code'] ?: 'Benchmark'}">S&amp;P 500</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;text-align:right;" th:text="${b['totalReturnPct'] ?: 'N/A'}">3.10%</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;text-align:right;" th:text="${b['volatilityPct'] ?: 'N/A'}">14.20%</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;text-align:right;" th:text="${b['maxDrawdownPct'] ?: 'N/A'}">-6.10%</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:12px;background-color:#f8fafc;padding:16px;margin-bottom:16px;">
+        <p style="margin:0 0 10px 0;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:#64748b;"
+           th:text="${#messages.msg('email.performance.relativeHeading')}">
+          Relative metrics
+        </p>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          <tbody>
+          <tr th:if="${data['alphaPctAnnualized'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.alpha')}">Alpha (annualized)</td>
+            <td style="padding:5px 0;font-size:14px;color:#334155;" th:text="${data['alphaPctAnnualized']}">-4.80%</td>
+          </tr>
+          <tr th:if="${data['beta'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.beta')}">Beta</td>
+            <td style="padding:5px 0;font-size:14px;color:#334155;" th:text="${data['beta']}">1.12</td>
+          </tr>
+          <tr th:if="${data['correlation'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.correlation')}">Correlation</td>
+            <td style="padding:5px 0;font-size:14px;color:#334155;" th:text="${data['correlation']}">0.86</td>
+          </tr>
+          <tr th:if="${data['sharpe'] != null}">
+            <td style="padding:5px 0;width:40%;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.sharpe')}">Sharpe</td>
+            <td style="padding:5px 0;font-size:14px;color:#334155;" th:text="${data['sharpe']}">0.35</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div th:if="${data['freshnessStatus'] != null or data['oldestHoldingAge'] != null}" style="border:1px solid #fcd34d;border-radius:12px;background-color:#fffbeb;padding:14px;margin-bottom:16px;">
+        <p style="margin:0 0 6px 0;font-size:12px;font-weight:700;color:#92400e;" th:text="${#messages.msg('email.performance.dataQualityHeading')}">Data quality</p>
+        <p style="margin:0;font-size:13px;color:#b45309;">
+          <span th:if="${data['freshnessStatus'] != null}" th:text="${#strings.replace(#strings.toUpperCase(data['freshnessStatus']), '_', ' ')}">WARNING</span>
+          <span th:if="${data['oldestHoldingAge'] != null}" th:text="${#messages.msg('email.performance.oldestHolding', data['oldestHoldingAge'])}"> | Oldest holding: 36h</span>
+        </p>
+      </div>
+
+      <div th:if="${data['recommendationTitle'] != null or data['keyFindings'] != null or data['suggestedActions'] != null}" style="border:1px solid #e2e8f0;border-radius:12px;background-color:#ffffff;padding:16px;margin-bottom:16px;">
+        <p style="margin:0 0 8px 0;font-size:16px;font-weight:700;color:#0f172a;" th:text="${data['recommendationTitle'] ?: #messages.msg('email.performance.insightsHeading')}">What this means</p>
+
+        <p style="margin:0 0 10px 0;font-size:14px;color:#334155;" th:if="${data['recommendationDescription'] != null}" th:text="${data['recommendationDescription']}">Summary description here.</p>
+
+        <div th:if="${data['keyFindings'] != null}" style="margin-bottom:10px;">
+          <p style="margin:0 0 6px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.performance.keyFindings')}">Key findings</p>
+          <ul style="margin:0;padding-left:18px;color:#334155;font-size:14px;">
+            <li th:each="k : ${data['keyFindings']}" th:text="${k}">Finding</li>
+          </ul>
+        </div>
+
+        <div th:if="${data['suggestedActions'] != null}">
+          <p style="margin:0 0 6px 0;font-size:12px;font-weight:700;color:#334155;" th:text="${#messages.msg('email.performance.suggestedActions')}">Suggested actions</p>
+          <ul style="margin:0;padding-left:18px;color:#334155;font-size:14px;">
+            <li th:each="a : ${data['suggestedActions']}">
+              <span th:if="${a instanceof T(java.util.Map) and a['title'] != null}" th:text="${a['title']}">Action</span>
+              <span th:if="${a instanceof T(java.util.Map) and a['detail'] != null}" th:text="${' - ' + a['detail']}"> - Detail</span>
+              <span th:unless="${a instanceof T(java.util.Map)}" th:text="${a}">Action</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div th:if="${data['ctaUrl'] != null}" style="margin:0 0 14px 0;">
+        <a th:href="${data['ctaUrl']}"
+           style="display:inline-block;padding:11px 20px;background-color:#111827;color:#ffffff;text-decoration:none;font-weight:700;border-radius:10px;"
+           th:text="${#messages.msg('email.performance.ctaLabel')}">
+          View full analysis
+        </a>
+      </div>
+
+      <p style="margin:0 0 12px 0;font-size:13px;color:#64748b;" th:text="${#messages.msg('email.performance.disclaimer')}">
+        This message is informational and based on available portfolio data. It does not constitute financial advice.
+      </p>
+      <p style="margin:0;font-size:14px;color:#334155;" th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
     </div>
   </div>
-
-  <!-- CTA -->
-  <div th:if="${data['ctaUrl']}" style="text-align:center;margin-bottom:24px;">
-    <a th:href="${data['ctaUrl']}"
-       style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;border-radius:8px;"
-       th:text="${#messages.msg('email.performance.ctaLabel')}">
-      View full analysis
-    </a>
-  </div>
-
-  <div style="background-color:#f3f4f6;border:1px solid #e5e7eb;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#6b7280;">
-    <table role="presentation" style="width:100%;border-collapse:collapse;">
-      <tbody>
-      <tr th:if="${data['analysisId']}">
-        <td style="padding:4px 8px 4px 0;font-weight:700;width:35%;" th:text="${#messages.msg('email.performance.analysisIdLabel')}">Analysis ID:</td>
-        <td style="padding:4px 0;font-family:monospace;word-break:break-all;" th:text="${data['analysisId']}">660e8400-e29b-41d4-a716-446655440010</td>
-      </tr>
-      <tr th:if="${data['portfolioId']}">
-        <td style="padding:4px 8px 4px 0;font-weight:700;width:35%;" th:text="${#messages.msg('email.performance.portfolioIdLabel')}">Portfolio ID:</td>
-        <td style="padding:4px 0;font-family:monospace;word-break:break-all;" th:text="${data['portfolioId']}">550e8400-e29b-41d4-a716-446655440000</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <p style="margin:0 0 20px 0;color:#6b7280;font-size:13px;" th:text="${#messages.msg('email.performance.disclaimer')}">
-    This message is informational and based on available portfolio data. It does not constitute financial advice.
-  </p>
-  <p style="margin:16px 0 0 0;" th:text="${#messages.msg('email.common.signature')}">Best regards,</p>
 </div>
 </body>
 </html>

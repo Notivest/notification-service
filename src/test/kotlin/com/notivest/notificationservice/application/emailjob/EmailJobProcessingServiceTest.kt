@@ -134,6 +134,31 @@ class EmailJobProcessingServiceTest {
         assertThat(savedJob.captured.error).contains("SMTP unavailable")
     }
 
+    @Test
+    fun `truncates persisted error to fit database column`() {
+        val job = pendingJob()
+        val contact = verifiedContact(job.userId)
+        val rendered = RenderedEmailTemplate(subject = "Subject", body = "<p>Body</p>")
+        val savedJob = slot<EmailJob>()
+        val longMessage = "X".repeat(400)
+
+        every { emailJobRepository.findDue(now, workerProperties.batchSize) } returns listOf(job)
+        every { userContactRepository.findByUserId(job.userId) } returns contact
+        every { emailTemplateRenderer.render(job.templateKey, contact.locale, job.templateData) } returns rendered
+        every { emailSender.send(any<OutboundEmail>()) } throws IllegalStateException(longMessage)
+        every { emailJobRepository.save(capture(savedJob)) } answers { savedJob.captured }
+
+        val result = service.processDueJobs()
+
+        assertThat(result.total).isEqualTo(1)
+        assertThat(result.sent).isEqualTo(0)
+        assertThat(result.failed).isEqualTo(1)
+        assertThat(savedJob.captured.status).isEqualTo(EmailJobStatus.FAILED)
+        assertThat(savedJob.captured.error).isNotNull
+        assertThat(savedJob.captured.error).hasSize(255)
+        assertThat(savedJob.captured.error).isEqualTo(longMessage.take(255))
+    }
+
     private fun pendingJob(): EmailJob =
         EmailJob.pending(
             userId = UUID.randomUUID(),
