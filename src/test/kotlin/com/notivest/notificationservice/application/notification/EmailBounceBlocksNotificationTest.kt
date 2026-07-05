@@ -15,8 +15,10 @@ import com.notivest.notificationservice.domain.emailjob.EmailJob
 import com.notivest.notificationservice.domain.emailjob.EmailJobStatus
 import com.notivest.notificationservice.domain.emailjob.port.EmailJobRepository
 import com.notivest.notificationservice.domain.notification.QuietHoursScheduler
+import com.notivest.notificationservice.observability.NotificationMetrics
 import com.notivest.notificationservice.domain.portfolio.PortfolioHolding
 import com.notivest.notificationservice.domain.portfolio.PortfolioHoldingsQuery
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,6 +42,7 @@ class EmailBounceBlocksNotificationTest {
     private lateinit var notificationService: NotificationApplicationService
     private lateinit var webhookService: EmailWebhookApplicationService
     private lateinit var alertTemplateDataEnricher: AlertTemplateDataEnricher
+    private val notificationMetrics = NotificationMetrics(SimpleMeterRegistry())
 
     private val userId: UUID = UUID.randomUUID()
 
@@ -74,6 +77,7 @@ class EmailBounceBlocksNotificationTest {
                 clock,
                 QuietHoursScheduler(),
                 alertTemplateDataEnricher,
+                notificationMetrics,
             )
 
         webhookService = EmailWebhookApplicationService(emailEventRepository, userContactRepository, clock)

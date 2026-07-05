@@ -1,6 +1,7 @@
 package com.notivest.notificationservice.bootstrap
 
 import com.notivest.notificationservice.domain.email.port.EmailSender
+import com.notivest.notificationservice.observability.NotificationMetrics
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
@@ -11,11 +12,13 @@ import org.springframework.stereotype.Component
 @Component
 class EmailInfrastructureReport(
     private val applicationContext: ApplicationContext,
+    private val notificationMetrics: NotificationMetrics,
 ) : ApplicationListener<ApplicationReadyEvent> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun onApplicationEvent(event: ApplicationReadyEvent) {
+        notificationMetrics.registerBaseMeters()
         val beanNames = applicationContext.getBeanNamesForType(JavaMailSender::class.java)
         val emailSenderBeans = applicationContext.getBeanNamesForType(EmailSender::class.java)
         val javaMailSenderClass =

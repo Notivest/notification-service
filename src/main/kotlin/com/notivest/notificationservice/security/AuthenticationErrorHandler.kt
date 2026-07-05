@@ -1,6 +1,7 @@
 package com.notivest.notificationservice.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.notivest.notificationservice.observability.CorrelationContext
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -88,6 +89,8 @@ class AuthenticationErrorHandler(
         val error: String,
         val message: String,
         val details: String,
+        val correlationId: String? = CorrelationContext.currentCorrelationId(),
+        val traceId: String? = CorrelationContext.currentTraceId(),
         val timestamp: String = Instant.now().toString(),
         val status: Int = 401,
     )

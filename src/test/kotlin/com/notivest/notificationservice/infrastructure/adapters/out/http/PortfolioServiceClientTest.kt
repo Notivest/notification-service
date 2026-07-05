@@ -1,12 +1,15 @@
 package com.notivest.notificationservice.infrastructure.adapters.out.http
 
 import com.notivest.notificationservice.domain.portfolio.PortfolioHolding
+import com.notivest.notificationservice.observability.CorrelationContext
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
@@ -29,13 +32,27 @@ class PortfolioServiceClientTest {
 
     @BeforeEach
     fun setUp() {
-        restTemplate = RestTemplateBuilder().rootUri(baseUrl).build()
+        restTemplate =
+            RestTemplateBuilder()
+                .rootUri(baseUrl)
+                .additionalInterceptors(
+                    ClientHttpRequestInterceptor { request, body, execution ->
+                        CorrelationContext.copyTo(request.headers)
+                        execution.execute(request, body)
+                    },
+                ).build()
         mockServer = MockRestServiceServer.bindTo(restTemplate).ignoreExpectOrder(true).build()
         client = PortfolioServiceClient(restTemplate)
     }
 
+    @AfterEach
+    fun clearCorrelationContext() {
+        CorrelationContext.clear()
+    }
+
     @Test
     fun `returns holdings when service responds with data`() {
+        CorrelationContext.setCorrelationId("corr-notification")
         val responseBody =
             """
             [
@@ -53,6 +70,9 @@ class PortfolioServiceClientTest {
 
         mockServer.expect(requestTo("$baseUrl/internal/v1/holdings/search"))
             .andExpect(method(HttpMethod.POST))
+            .andExpect { request ->
+                assertThat(request.headers.getFirst(CorrelationContext.HEADER_CORRELATION_ID)).isEqualTo("corr-notification")
+            }
             .andExpect(jsonPath("\$.userId").value(userId.toString()))
             .andExpect(jsonPath("\$.symbols[0]").value("AAPL"))
             .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON))

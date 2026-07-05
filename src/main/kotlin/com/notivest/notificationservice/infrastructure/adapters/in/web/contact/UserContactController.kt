@@ -7,6 +7,7 @@ import com.notivest.notificationservice.exceptions.InvalidUserEmailException
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.UpsertUserContactRequest
 import com.notivest.notificationservice.infrastructure.adapters.`in`.web.contact.dto.UserContactResponse
 import com.notivest.notificationservice.infrastructure.mapper.UserContactMapper
+import com.notivest.notificationservice.observability.CorrelationContext
 import com.notivest.notificationservice.security.JwtEmailResolver
 import com.notivest.notificationservice.security.JwtUserIdResolver
 import jakarta.validation.Valid
@@ -94,5 +95,7 @@ class UserContactController(
             .apply {
                 title = status.reasonPhrase
                 this.type = URI.create("urn:problem:user-contact:$type")
+                setProperty("correlationId", CorrelationContext.currentCorrelationId())
+                setProperty("traceId", CorrelationContext.currentTraceId())
             }
 }

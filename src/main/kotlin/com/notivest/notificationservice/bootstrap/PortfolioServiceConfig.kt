@@ -1,5 +1,6 @@
 package com.notivest.notificationservice.bootstrap
 
+import com.notivest.notificationservice.observability.CorrelationContext
 import com.notivest.notificationservice.infrastructure.adapters.out.http.PortfolioServiceTokenProvider
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -42,6 +43,7 @@ class PortfolioServiceConfig(
             .additionalInterceptors(
                 ClientHttpRequestInterceptor { request, body, execution ->
                     request.headers.setBearerAuth(tokenProvider.getAccessToken())
+                    CorrelationContext.copyTo(request.headers)
                     execution.execute(request, body)
                 },
             )

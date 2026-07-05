@@ -10,11 +10,13 @@ import com.notivest.notificationservice.domain.dedup.port.DedupKeyRepository
 import com.notivest.notificationservice.domain.emailjob.EmailJob
 import com.notivest.notificationservice.domain.emailjob.port.EmailJobRepository
 import com.notivest.notificationservice.domain.notification.QuietHoursScheduler
+import com.notivest.notificationservice.observability.NotificationMetrics
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,6 +37,7 @@ class NotificationApplicationServiceTest {
     private val quietHoursScheduler = QuietHoursScheduler()
     private val deduplicationBucketCalculator = DeduplicationBucketCalculator(Duration.ofMinutes(5))
     private val alertTemplateDataEnricher: AlertTemplateDataEnricher = mockk()
+    private val notificationMetrics = NotificationMetrics(SimpleMeterRegistry())
     private val objectMapper = ObjectMapper().findAndRegisterModules()
 
     private val userId = UUID.randomUUID()
@@ -176,6 +179,7 @@ class NotificationApplicationServiceTest {
             clock = Clock.fixed(clockInstant, ZoneOffset.UTC),
             quietHoursScheduler = quietHoursScheduler,
             alertTemplateDataEnricher = alertTemplateDataEnricher,
+            notificationMetrics = notificationMetrics,
         )
 
     private fun alertCommand(severity: String): NotifyAlertCommand =

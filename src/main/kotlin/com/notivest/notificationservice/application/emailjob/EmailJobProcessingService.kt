@@ -1,6 +1,7 @@
 package com.notivest.notificationservice.application.emailjob
 
 import com.notivest.notificationservice.bootstrap.EmailJobWorkerProperties
+import com.notivest.notificationservice.observability.NotificationMetrics
 import com.notivest.notificationservice.domain.contact.EmailStatus
 import com.notivest.notificationservice.domain.contact.port.UserContactRepository
 import com.notivest.notificationservice.domain.email.EmailTemplateRenderer
@@ -22,6 +23,7 @@ class EmailJobProcessingService(
     private val emailSender: EmailSender,
     private val clock: Clock,
     private val workerProperties: EmailJobWorkerProperties,
+    private val notificationMetrics: NotificationMetrics,
 ) : ProcessEmailJobsUseCase {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -58,6 +60,7 @@ class EmailJobProcessingService(
 
     private fun processJob(job: EmailJob): JobOutcome {
         val attemptInstant = Instant.now(clock)
+        val sample = notificationMetrics.startEmailJobTimer()
         return try {
             val contact = userContactRepository.findByUserId(job.userId)
                 ?: throw SkippableJobException("Contact not found")
@@ -82,17 +85,22 @@ class EmailJobProcessingService(
 
             val updatedJob = job.markSent(attemptInstant)
             emailJobRepository.save(updatedJob)
+            notificationMetrics.recordEmailJobOutcome("sent")
             JobOutcome.Sent
         } catch (ex: SkippableJobException) {
             logger.info("Skipping email job {}: {}", job.id, ex.message)
             val updatedJob = job.markFailed(attemptInstant, ex.message ?: "Skipped")
             emailJobRepository.save(updatedJob)
+            notificationMetrics.recordEmailJobOutcome("skipped")
             JobOutcome.Failed(ex.message)
         } catch (ex: Exception) {
             logger.warn("Failed to process email job {}: {}", job.id, ex.message, ex)
             val updatedJob = job.markFailed(attemptInstant, ex.message ?: ex.javaClass.simpleName)
             emailJobRepository.save(updatedJob)
+            notificationMetrics.recordEmailJobOutcome("failed")
             JobOutcome.Failed(ex.message)
+        } finally {
+            notificationMetrics.stopEmailJobTimer(sample)
         }
     }
 
