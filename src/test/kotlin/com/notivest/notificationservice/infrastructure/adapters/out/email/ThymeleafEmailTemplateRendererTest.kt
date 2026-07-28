@@ -117,8 +117,8 @@ class ThymeleafEmailTemplateRendererTest {
                 {
                   "portfolioName": "Cartera USD",
                   "quantity": 12.5,
-                  "avgCost": 188.12,
-                  "bookValue": 2351.50,
+                  "avgCost": 188.123456,
+                  "bookValue": 2351.509999,
                   "updatedAt": "2024-06-01T10:15:00Z"
                 }
               ]
@@ -131,7 +131,9 @@ class ThymeleafEmailTemplateRendererTest {
         assertThat(rendered.body).contains("Your holdings in this asset")
         assertThat(rendered.body).contains("Cartera USD")
         assertThat(rendered.body).contains("188.12")
-        assertThat(rendered.body).contains("2351.5")
+        assertThat(rendered.body).contains("2351.51")
+        assertThat(rendered.body).doesNotContain("188.123456")
+        assertThat(rendered.body).doesNotContain("2351.509999")
     }
 
     @Test

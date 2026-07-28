@@ -126,8 +126,8 @@
           <tr th:each="holding : ${data['holdings']}" style="border-top:1px solid #f1f5f9;">
             <td style="padding:8px 0;font-size:14px;color:#0f172a;font-weight:600;" th:text="${holding['portfolioName']}">Growth Portfolio</td>
             <td style="padding:8px 0;font-size:14px;color:#334155;" th:text="${holding['quantity']}">10.5</td>
-            <td style="padding:8px 0;font-size:14px;color:#334155;" th:text="${holding['avgCost']}">185.32</td>
-            <td style="padding:8px 0;font-size:14px;color:#334155;" th:text="${holding['bookValue']}">1945.86</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;" th:text="${#numbers.formatDecimal(holding['avgCost'], 1, 2)}">185.32</td>
+            <td style="padding:8px 0;font-size:14px;color:#334155;" th:text="${#numbers.formatDecimal(holding['bookValue'], 1, 2)}">1945.86</td>
             <td style="padding:8px 0;font-size:13px;color:#64748b;" th:text="${holding['updatedAt']}">2024-06-01T11:45:30Z</td>
           </tr>
           </tbody>
